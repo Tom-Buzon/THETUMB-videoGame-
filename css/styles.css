@@ -1,0 +1,89 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #1a1a1a;
+    color: white;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#gameContainer {
+    position: relative;
+    border: 2px solid #333;
+    background: #000;
+}
+
+#gameCanvas {
+    display: block;
+    background: #0a0a0a;
+}
+
+#ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    pointer-events: none;
+}
+
+#healthBar {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 200px;
+    height: 20px;
+    background: #333;
+    border: 1px solid #666;
+}
+
+#healthFill {
+    height: 100%;
+    background: linear-gradient(to right, #ff0000, #ffff00, #00ff00);
+    transition: width 0.3s ease;
+}
+
+#healthText {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    line-height: 20px;
+}
+
+#weaponInfo {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-align: right;
+}
+
+#weaponName {
+    display: block;
+    font-size: 14px;
+    color: #00ff00;
+}
+
+#ammoInfo {
+    font-size: 12px;
+    color: #ccc;
+}
+
+#dungeonInfo {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    font-size: 12px;
+}
+
+#roomInfo {
+    color: #aaa;
+}
