@@ -9,36 +9,72 @@
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <!-- DOOM Style UI -->
         <div id="ui">
             <div id="healthBar">
                 <div id="healthFill"></div>
                 <span id="healthText">100/100</span>
             </div>
+            
             <div id="weaponInfo">
-                <span id="weaponName">Auto Rifle</span>
-                <span id="ammoInfo">∞</span>
+                <span id="weaponName">AUTO RIFLE</span>
+                <span id="damage">DMG: 10</span>
+                <span id="fireRate">RATE: 100ms</span>
             </div>
+            
             <div id="dungeonInfo">
-                <span id="dungeonName">Dungeon 1</span>
-                <span id="roomInfo">Room 1/3</span>
+                <span id="dungeonName">DUNGEON 1</span>
+                <span id="roomInfo">ROOM 1/3</span>
+                <span id="enemiesLeft">ENEMIES: 0</span>
+            </div>
+            
+            <div id="scoreDisplay">SCORE: 0</div>
+            <div id="timer">00:00</div>
+        </div>
+        
+        <!-- DOOM Style Combo Display -->
+        <div id="combo" class="doom-text">2x KILL</div>
+        
+        <!-- DOOM Style Weapon Change -->
+        <div id="weaponChange" class="doom-text weapon-change">SEMI-AUTO</div>
+        
+        <!-- Game Over Screen -->
+        <div id="gameOver" class="screen">
+            <div class="screen-content">
+                <h1 class="doom-title">GAME OVER</h1>
+                <p class="doom-text">FINAL SCORE: <span id="finalScore">0</span></p>
+                <p class="doom-text">Press SPACE to restart</p>
+            </div>
+        </div>
+        
+        <!-- Victory Screen -->
+        <div id="victory" class="screen">
+            <div class="screen-content">
+                <h1 class="doom-title">VICTORY!</h1>
+                <p class="doom-text">FINAL SCORE: <span id="victoryScore">0</span></p>
+                <p class="doom-text">Press SPACE to restart</p>
             </div>
         </div>
     </div>
 
-    <!-- Scripts in correct order -->
     <script src="js/utils.js"></script>
     <script src="js/vector2d.js"></script>
-    <script src="js/bullet.js"></script>
-    <script src="js/weapon.js"></script>
     <script src="js/player.js"></script>
-    <script src="js/enemy.js"></script>
-    <script src="js/enemies/shooter.js"></script>
+    <script src="js/weapon.js"></script>
+    <script src="js/bullet.js"></script>
+    <script src="js/enemies/swarmer.js"></script>
     <script src="js/enemies/exploder.js"></script>
+    <script src="js/enemies/shooter.js"></script>
     <script src="js/enemies/charger.js"></script>
-    <script src="js/item.js"></script>
+    <script src="js/enemies/sniper.js"></script>
+    <script src="js/enemies/boss.js"></script>
     <script src="js/obstacle.js"></script>
-    <script src="js/room.js"></script>
+    <script src="js/item.js"></script>
     <script src="js/particles.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/room.js"></script>
+    <script src="js/dungeon.js"></script>
     <script src="js/game.js"></script>
     <script src="js/main.js"></script>
 </body>

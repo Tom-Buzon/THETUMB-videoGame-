@@ -2,7 +2,8 @@ class Item {
     constructor(x, y, type) {
         this.position = new Vector2D(x, y);
         this.type = type;
-        this.size = 10;
+        this.size = 15;
+        this.color = type === 'health' ? '#ff0000' : '#00ff00';
         this.pulse = 0;
     }
 
@@ -11,24 +12,29 @@ class Item {
     }
 
     render(ctx) {
-        this.update();
+        const scale = 1 + Math.sin(this.pulse) * 0.2;
         
-        const glowSize = this.size + Math.sin(this.pulse) * 3;
+        ctx.save();
+        ctx.translate(this.position.x, this.position.y);
+        ctx.scale(scale, scale);
         
-        if (this.type === 'health') {
-            // Health pack
-            ctx.fillStyle = '#00ff00';
-            ctx.shadowColor = '#00ff00';
-            ctx.shadowBlur = 10;
-            ctx.beginPath();
-            ctx.arc(this.position.x, this.position.y, glowSize, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            
-            // Cross symbol
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(this.position.x - 3, this.position.y - 8, 6, 16);
-            ctx.fillRect(this.position.x - 8, this.position.y - 3, 16, 6);
-        }
+        // Draw item
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw glow
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        
+        // Draw inner circle
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(0, 0, this.size * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
     }
 }

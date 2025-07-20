@@ -5,112 +5,135 @@ class Player {
         this.size = 15;
         this.health = 100;
         this.maxHealth = 100;
-        this.speed = 2;
-        this.aimX = 0;
-        this.aimY = 0;
+        this.speed = 4;
+        this.color = '#00ff00';
+        
+        this.keys = {};
+        this.mouse = {
+            x: 0,
+            y: 0,
+            pressed: false
+        };
+        
         this.weapon = new Weapon();
+        
+        // **CORRECTION : RECUL TOUJOURS ACTIF**
+        this.recoilForce = new Vector2D(0, 0);
+        this.friction = 0.85;
     }
 
-    update(keys, obstacles) {
-        // Reset velocity
-        this.velocity.x = 0;
-        this.velocity.y = 0;
+    update() {
+        // **MOUVEMENT INDÉPENDANT DU RECUL**
+        this.handleMovement();
+        
+        // **APPLICATION DU RECUL**
+        this.applyRecoil();
+        
+        // **LIMITES**
+        this.position.x = Math.max(this.size, Math.min(800 - this.size, this.position.x));
+        this.position.y = Math.max(this.size, Math.min(600 - this.size, this.position.y));
+    }
 
-        // Movement with AZERTY layout (ZQSD)
-        if (keys['z'] || keys['Z']) this.velocity.y = -this.speed;
-        if (keys['s'] || keys['S']) this.velocity.y = this.speed;
-        if (keys['q'] || keys['Q']) this.velocity.x = -this.speed;
-        if (keys['d'] || keys['D']) this.velocity.x = this.speed;
-
-        // Diagonal movement normalization
-        if (this.velocity.x !== 0 && this.velocity.y !== 0) {
-            this.velocity.x *= 0.707; // 1/sqrt(2)
-            this.velocity.y *= 0.707;
+    handleMovement() {
+        // **MOUVEMENT DE BASE (INDÉPENDANT DU RECUL)**
+        let moveX = 0;
+        let moveY = 0;
+        
+        if (this.keys['w'] || this.keys['z'] || this.keys['arrowup']) moveY -= 1;
+        if (this.keys['s'] || this.keys['arrowdown']) moveY += 1;
+        if (this.keys['a'] || this.keys['q'] || this.keys['arrowleft']) moveX -= 1;
+        if (this.keys['d'] || this.keys['arrowright']) moveX += 1;
+        
+        // **NORMALISATION DU MOUVEMENT**
+        if (moveX !== 0 || moveY !== 0) {
+            const length = Math.sqrt(moveX * moveX + moveY * moveY);
+            moveX /= length;
+            moveY /= length;
         }
-
-        // Apply movement
-        const newX = this.position.x + this.velocity.x;
-        const newY = this.position.y + this.velocity.y;
-
-        // Check collision with obstacles
-        let canMoveX = true;
-        let canMoveY = true;
-
-        for (let obstacle of obstacles) {
-            if (this.checkCollision(newX, this.position.y, obstacle)) {
-                canMoveX = false;
-            }
-            if (this.checkCollision(this.position.x, newY, obstacle)) {
-                canMoveY = false;
-            }
-        }
-
-        // Apply movement if no collision
-        if (canMoveX) this.position.x = Math.max(this.size, Math.min(800 - this.size, newX));
-        if (canMoveY) this.position.y = Math.max(this.size, Math.min(600 - this.size, newY));
-
-        // Update weapon
-        this.weapon.updateHealthState(this.health);
+        
+        // **APPLICATION DU MOUVEMENT**
+        this.position.x += moveX * this.speed;
+        this.position.y += moveY * this.speed;
     }
 
-    checkCollision(x, y, obstacle) {
-        return x - this.size < obstacle.x + obstacle.width &&
-               x + this.size > obstacle.x &&
-               y - this.size < obstacle.y + obstacle.height &&
-               y + this.size > obstacle.y;
+    applyRecoil() {
+        // **APPLICATION DU RECUL (INDÉPENDANT DU MOUVEMENT)**
+        this.position = this.position.add(this.recoilForce);
+        this.recoilForce = this.recoilForce.multiply(this.friction);
     }
 
-    setAim(x, y) {
-        this.aimX = x;
-        this.aimY = y;
-    }
-
-    shoot(target) {
-        const direction = new Vector2D(target.x - this.position.x, target.y - this.position.y).normalize();
-        const bullet = this.weapon.shoot(this.position.x, this.position.y, direction.x, direction.y, 'player');
+    shoot() {
+        const direction = new Vector2D(
+            this.mouse.x - this.position.x,
+            this.mouse.y - this.position.y
+        ).normalize();
+        
+        const bullet = this.weapon.shoot(this.position.x, this.position.y, direction);
         
         if (bullet) {
-            // Apply recoil to player
-            const state = this.weapon.getCurrentState();
-            const recoilForce = 50 * state.recoilMultiplier * (1 - this.health/this.maxHealth);
+            // **CALCUL DU RECUL CORRIGÉ**
+            const healthFactor = 1 - (this.health / this.maxHealth);
+            const recoilMultiplier = 0.5 + healthFactor * 2; // 0.5 à 2.5
             
-            // Push player in opposite direction
-            const recoilDirection = direction.multiply(-recoilForce);
-            this.position.x += recoilDirection.x;
-            this.position.y += recoilDirection.y;
+            const recoil = direction.multiply(-bullet.damage * recoilMultiplier);
+            this.recoilForce = this.recoilForce.add(recoil);
             
-            // Keep player in bounds
-            this.position.x = Math.max(this.size, Math.min(800 - this.size, this.position.x));
-            this.position.y = Math.max(this.size, Math.min(600 - this.size, this.position.y));
+            return bullet;
         }
         
-        return bullet;
+        return null;
     }
 
     takeDamage(amount) {
         this.health = Math.max(0, this.health - amount);
-        this.weapon.updateHealthState(this.health);
+        
+        // **FLASH ROUGE QUAND TOUCHÉ**
+        const flash = document.createElement('div');
+        flash.className = 'damage-flash';
+        document.getElementById('gameContainer').appendChild(flash);
+        setTimeout(() => flash.remove(), 200);
     }
 
     heal(amount) {
         this.health = Math.min(this.maxHealth, this.health + amount);
-        this.weapon.updateHealthState(this.health);
     }
 
     render(ctx) {
-        // Player body
-        ctx.fillStyle = '#00ff00';
-        ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Player direction indicator
-        const direction = new Vector2D(this.aimX - this.position.x, this.aimY - this.position.y).normalize();
+        // **CORPS DU JOUEUR**
+        ctx.fillStyle = this.color;
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(this.position.x, this.position.y);
-        ctx.lineTo(this.position.x + direction.x * 20, this.position.y + direction.y * 20);
+        ctx.arc(this.position.x, this.position.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
         ctx.stroke();
+        
+        // **DIRECTION DU JOUEUR**
+        const direction = new Vector2D(
+            this.mouse.x - this.position.x,
+            this.mouse.y - this.position.y
+        ).normalize();
+        
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(this.position.x, this.position.y);
+        ctx.lineTo(
+            this.position.x + direction.x * 20,
+            this.position.y + direction.y * 20
+        );
+        ctx.stroke();
+        
+        // **BARRE DE VIE AU-DESSUS DU JOUEUR**
+        const barWidth = 30;
+        const barHeight = 4;
+        const barX = this.position.x - barWidth / 2;
+        const barY = this.position.y - this.size - 10;
+        
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(barX - 1, barY - 1, barWidth + 2, barHeight + 2);
+        
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(barX, barY, barWidth * (this.health / this.maxHealth), barHeight);
     }
 }

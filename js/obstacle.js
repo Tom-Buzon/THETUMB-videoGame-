@@ -1,73 +1,64 @@
 class Obstacle {
-    constructor(x, y, width, height, type = 'wall') {
-        this.position = new Vector2D(x, y);
+    constructor(x, y, width, height) {
+        this.x = x;
+        this.y = y;
         this.width = width;
         this.height = height;
-        this.type = type;
-        
-        switch(type) {
-            case 'wall':
-                this.color = '#444';
-                this.solid = true;
-                break;
-            case 'spike':
-                this.color = '#ff4444';
-                this.solid = false;
-                this.damage = 20;
-                break;
-            case 'barrier':
-                this.color = '#8888ff';
-                this.solid = true;
-                this.health = 50;
-                this.maxHealth = 50;
-                break;
-        }
-    }
-
-    checkCollision(entity) {
-        const closestX = clamp(entity.position.x, this.position.x, this.position.x + this.width);
-        const closestY = clamp(entity.position.y, this.position.y, this.position.y + this.height);
-        
-        const distance = entity.position.distance(new Vector2D(closestX, closestY));
-        
-        if (distance < entity.size) {
-            if (this.solid) {
-                // Push entity away from obstacle
-                const pushDirection = entity.position.subtract(new Vector2D(
-                    this.position.x + this.width/2,
-                    this.position.y + this.height/2
-                )).normalize();
-                
-                entity.position = entity.position.add(pushDirection.multiply(entity.size - distance + 1));
-            }
-            
-            if (this.type === 'spike') {
-                return { damage: this.damage };
-            }
-        }
-        
-        return null;
+        this.color = '#444444';
     }
 
     render(ctx) {
+        // Doom-style obstacle
         ctx.fillStyle = this.color;
-        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+        ctx.fillRect(this.x, this.y, this.width, this.height);
         
-        if (this.type === 'barrier' && this.health < this.maxHealth) {
-            // Health bar for barriers
-            const healthPercent = this.health / this.maxHealth;
-            ctx.fillStyle = '#333';
-            ctx.fillRect(this.position.x, this.position.y - 10, this.width, 4);
-            ctx.fillStyle = '#00ff00';
-            ctx.fillRect(this.position.x, this.position.y - 10, this.width * healthPercent, 4);
-        }
+        // 3D effect
+        ctx.fillStyle = '#666666';
+        ctx.fillRect(this.x + 2, this.y + 2, this.width - 4, this.height - 4);
+        
+        // Highlight
+        ctx.fillStyle = '#888888';
+        ctx.fillRect(this.x + 4, this.y + 4, this.width - 8, this.height - 8);
     }
 
-    takeDamage(amount) {
-        if (this.type === 'barrier') {
-            this.health = Math.max(0, this.health - amount);
-            return this.health <= 0;
+    checkCollision(obj) {
+        const objX = obj.position.x;
+        const objY = obj.position.y;
+        const objRadius = obj.size || obj.radius || 10;
+        
+        // Find closest point on rectangle to circle
+        const closestX = Math.max(this.x, Math.min(objX, this.x + this.width));
+        const closestY = Math.max(this.y, Math.min(objY, this.y + this.height));
+        
+        // Calculate distance
+        const distance = Math.sqrt(
+            (objX - closestX) ** 2 + (objY - closestY) ** 2
+        );
+        
+        return distance < objRadius;
+    }
+
+    resolveCollision(obj) {
+        const objX = obj.position.x;
+        const objY = obj.position.y;
+        const objRadius = obj.size || obj.radius || 10;
+        
+        // Find closest point
+        const closestX = Math.max(this.x, Math.min(objX, this.x + this.width));
+        const closestY = Math.max(this.y, Math.min(objY, this.y + this.height));
+        
+        // Calculate overlap
+        const dx = objX - closestX;
+        const dy = objY - closestY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < objRadius && distance > 0) {
+            const overlap = objRadius - distance;
+            const pushX = (dx / distance) * overlap;
+            const pushY = (dy / distance) * overlap;
+            
+            obj.position.x += pushX;
+            obj.position.y += pushY;
         }
-        return false;
     }
 }

@@ -1,38 +1,40 @@
-class Shooter {
+class Sniper {
     constructor(x, y) {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(0, 0);
-        this.size = 18;
-        this.health = 50;
-        this.maxHealth = 50;
+        this.size = 20;
+        this.health = 60;
+        this.maxHealth = 60;
         this.speed = 1.5;
-        this.color = '#44ff44';
+        this.color = '#8844ff';
         this.activated = false;
         this.shootCooldown = 0;
-        this.shootRange = 200;
+        this.shootRange = 300;
+        this.retreatDistance = 200;
     }
 
     update(player) {
         if (!this.activated) return null;
 
-        // Movement - maintain distance
         const distanceToPlayer = Math.sqrt(
             (player.position.x - this.position.x) ** 2 +
             (player.position.y - this.position.y) ** 2
         );
 
+        // Movement logic - keep distance
         const direction = new Vector2D(
             player.position.x - this.position.x,
             player.position.y - this.position.y
         ).normalize();
 
-        if (distanceToPlayer < 100) {
-            // Move away from player
+        if (distanceToPlayer < this.retreatDistance) {
+            // Retreat from player
             this.velocity = direction.multiply(-this.speed);
-        } else if (distanceToPlayer > 150) {
+        } else if (distanceToPlayer > this.shootRange) {
             // Move closer to player
             this.velocity = direction.multiply(this.speed);
         } else {
+            // Stay still and shoot
             this.velocity = new Vector2D(0, 0);
         }
 
@@ -48,21 +50,17 @@ class Shooter {
         }
 
         if (distanceToPlayer <= this.shootRange && this.shootCooldown <= 0) {
-            this.shootCooldown = 60; // 1 second
+            this.shootCooldown = 120; // 2 seconds
             
-            const direction = new Vector2D(
-                player.position.x - this.position.x,
-                player.position.y - this.position.y
-            ).normalize();
-            
+            const bulletDirection = direction;
             return new Bullet(
-                this.position.x + direction.x * 25,
-                this.position.y + direction.y * 25,
-                direction.x * 5,
-                direction.y * 5,
-                15,
-                '#44ff44',
-                3,
+                this.position.x + bulletDirection.x * 25,
+                this.position.y + bulletDirection.y * 25,
+                bulletDirection.x * 8,
+                bulletDirection.y * 8,
+                25,
+                '#8844ff',
+                4,
                 'enemy'
             );
         }
@@ -75,33 +73,39 @@ class Shooter {
     }
 
     render(ctx) {
-        // **CORPS AVEC BORDURE POUR VISIBILITÉ**
+        // Body
         ctx.fillStyle = this.color;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, this.size, 0, Math.PI * 2);
         ctx.fill();
-        ctx.stroke();
         
-        // **CANON VISIBLE**
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(this.position.x + 15, this.position.y, 5, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // **CROIX ROUGE POUR IDENTIFICATION**
-        ctx.strokeStyle = '#ff0000';
+        // Sniper scope indicator
+        ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(this.position.x - 8, this.position.y - 8);
-        ctx.lineTo(this.position.x + 8, this.position.y + 8);
-        ctx.moveTo(this.position.x + 8, this.position.y - 8);
-        ctx.lineTo(this.position.x - 8, this.position.y + 8);
+        ctx.arc(this.position.x, this.position.y, this.size + 5, 0, Math.PI * 2);
         ctx.stroke();
         
+        // Laser sight
+        const player = window.game ? window.game.player : null;
+        if (player && this.activated) {
+            const distance = Math.sqrt(
+                (player.position.x - this.position.x) ** 2 +
+                (player.position.y - this.position.y) ** 2
+            );
+            
+            if (distance <= this.shootRange) {
+                ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(this.position.x, this.position.y);
+                ctx.lineTo(player.position.x, player.position.y);
+                ctx.stroke();
+            }
+        }
+        
         // Health bar
-        const barWidth = 35;
+        const barWidth = 40;
         const barHeight = 4;
         const barX = this.position.x - barWidth / 2;
         const barY = this.position.y - this.size - 10;

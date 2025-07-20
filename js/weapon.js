@@ -1,109 +1,90 @@
 class Weapon {
     constructor() {
-        this.lastFireTime = 0;
-        this.currentHealth = 100;
-        this.maxHealth = 100;
-    }
-
-    update() {
-        // Update weapon state based on current health
-        // This method is called every frame
-    }
-
-    updateHealthState(health) {
-        this.currentHealth = health;
-    }
-
-    getCurrentState() {
-        const healthPercent = (this.currentHealth / this.maxHealth) * 100;
-        
-        // Fixed progression: starts with auto, gets slower as HP decreases
-        if (healthPercent >= 75) {
-            return {
-                name: 'Auto Rifle',
-                fireRate: 100,      // Very fast
-                damage: 8,          // Low damage
-                recoilMultiplier: 0.5,
+        this.states = {
+            AUTO: {
+                name: 'AUTO RIFLE',
+                hpRange: [75, 100],
+                fireRate: 100,
+                damage: 10,
+                recoilMult: 0.5,
                 color: '#00ff00'
-            };
-        } else if (healthPercent >= 50) {
-            return {
-                name: 'Burst Rifle',
-                fireRate: 300,      // Medium
-                damage: 15,         // Medium damage
-                recoilMultiplier: 1.0,
+            },
+            BURST: {
+                name: 'BURST RIFLE',
+                hpRange: [50, 74],
+                fireRate: 300,
+                damage: 25,
+                recoilMult: 1.0,
                 color: '#ffff00'
-            };
-        } else if (healthPercent >= 25) {
-            return {
-                name: 'Semi-Auto',
-                fireRate: 800,      // Slow
-                damage: 30,         // High damage
-                recoilMultiplier: 2.0,
-                color: '#ff8800'
-            };
-        } else {
-            return {
-                name: 'Single Shot',
-                fireRate: 1500,     // Very slow
-                damage: 60,         // Massive damage
-                recoilMultiplier: 5.0,
+            },
+            SEMI: {
+                name: 'SEMI-AUTO',
+                hpRange: [25, 49],
+                fireRate: 800,
+                damage: 50,
+                recoilMult: 2.0,
+                color: '#ff6600'
+            },
+            SINGLE: {
+                name: 'SINGLE SHOT',
+                hpRange: [1, 24],
+                fireRate: 1500,
+                damage: 100,
+                recoilMult: 5.0,
                 color: '#ff0000'
-            };
+            }
+        };
+        
+        this.currentState = 'AUTO';
+        this.lastFireTime = 0;
+    }
+
+    updateState(playerHealth, maxHealth) {
+        const healthPercent = (playerHealth / maxHealth) * 100;
+        
+        for (const [state, config] of Object.entries(this.states)) {
+            if (healthPercent >= config.hpRange[0] && healthPercent <= config.hpRange[1]) {
+                this.currentState = state;
+                break;
+            }
         }
     }
 
-    canFire(currentTime) {
-        const state = this.getCurrentState();
-        return currentTime - this.lastFireTime >= state.fireRate;
+    shoot(x, y, direction) {
+        const now = Date.now();
+        const state = this.states[this.currentState];
+        
+        if (now - this.lastFireTime < state.fireRate) {
+            return null;
+        }
+        
+        this.lastFireTime = now;
+        
+        return new Bullet(
+            x + direction.x * 20,
+            y + direction.y * 20,
+            direction.x * 8,
+            direction.y * 8,
+            state.damage,
+            state.color,
+            5,
+            'player'
+        );
     }
 
-    shoot(fromX, fromY, directionX, directionY, owner) {
-        const currentTime = Date.now();
-        if (this.canFire(currentTime)) {
-            this.lastFireTime = currentTime;
-            const state = this.getCurrentState();
-            
-            const direction = new Vector2D(directionX, directionY).normalize();
-            const bulletSpeed = 8;
-            
-            return new Bullet(
-                fromX,
-                fromY,
-                direction.x * bulletSpeed,
-                direction.y * bulletSpeed,
-                state.damage,
-                state.color,
-                4,
-                owner
-            );
-        }
-        return null;
+    getName() {
+        return this.states[this.currentState].name;
     }
 
-    fire(fromPosition, targetPosition, currentHealth, maxHealth) {
-        const currentTime = Date.now();
-        if (this.canFire(currentTime)) {
-            this.lastFireTime = currentTime;
-            const state = this.getCurrentState();
-            
-            const direction = new Vector2D(
-                targetPosition.x - fromPosition.x,
-                targetPosition.y - fromPosition.y
-            ).normalize();
-            
-            const bulletSpeed = 8;
-            const recoil = 50 * state.recoilMultiplier * (1 - currentHealth/maxHealth);
-            
-            return {
-                position: new Vector2D(fromPosition.x, fromPosition.y),
-                velocity: direction.multiply(bulletSpeed),
-                damage: state.damage,
-                color: state.color,
-                size: 4,
-                recoil: recoil
-            };
-        }
-        return null;
+    getDamage() {
+        return this.states[this.currentState].damage;
+    }
+
+    getFireRate() {
+        return this.states[this.currentState].fireRate;
+    }
+
+    getColor() {
+        return this.states[this.currentState].color;
     }
 }

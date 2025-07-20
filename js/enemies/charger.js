@@ -1,79 +1,97 @@
-class Charger extends Enemy {
+class Charger {
     constructor(x, y) {
-        super(x, y);
-        this.color = '#ffff00';
-        this.health = 40;
-        this.maxHealth = 40;
-        this.speed = 1;
-        this.chargeSpeed = 6;
-        this.chargeRange = 250;
-        this.chargeDamage = 99;
-        this.charging = false;
-        this.chargeDirection = new Vector2D(0, 0);
+        this.position = new Vector2D(x, y);
+        this.velocity = new Vector2D(0, 0);
+        this.size = 25;
+        this.health = 80;
+        this.maxHealth = 80;
+        this.speed = 3;
+        this.color = '#ff4444';
+        this.activated = false;
         this.chargeCooldown = 0;
+        this.chargeSpeed = 8;
+        this.isCharging = false;
+        this.chargeDirection = new Vector2D(0, 0);
+        this.chargeDuration = 0;
+        this.maxChargeDuration = 30;
     }
 
-    update(player, currentTime) {
+    update(player) {
         if (!this.activated) return null;
 
-        const dx = player.position.x - this.position.x;
-        const dy = player.position.y - this.position.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        const distanceToPlayer = Math.sqrt(
+            (player.position.x - this.position.x) ** 2 +
+            (player.position.y - this.position.y) ** 2
+        );
 
-        if (this.charging) {
-            // Continue charging
-            this.position.x += this.chargeDirection.x * this.chargeSpeed;
-            this.position.y += this.chargeDirection.y * this.chargeSpeed;
+        if (this.isCharging) {
+            // Charging state
+            this.position = this.position.add(this.chargeDirection.multiply(this.chargeSpeed));
+            this.chargeDuration++;
             
-            // Check collision with player
-            const playerDistance = Math.sqrt(
-                (this.position.x - player.position.x) ** 2 + 
-                (this.position.y - player.position.y) ** 2
-            );
-            
-            if (playerDistance < this.size + 15) {
-                player.takeDamage(this.chargeDamage);
-                this.health = 0; // Die after charge
+            if (this.chargeDuration >= this.maxChargeDuration) {
+                this.isCharging = false;
+                this.chargeCooldown = 60;
+                this.chargeDuration = 0;
             }
-            
-            // Stop charging if out of bounds
-            if (this.position.x < 0 || this.position.x > 800 || 
-                this.position.y < 0 || this.position.y > 600) {
-                this.health = 0;
-            }
-            
-            return null;
-        }
-
-        if (this.chargeCooldown > 0) {
+        } else if (this.chargeCooldown > 0) {
+            // Cooldown state
             this.chargeCooldown--;
+        } else {
+            // Normal movement
+            const direction = new Vector2D(
+                player.position.x - this.position.x,
+                player.position.y - this.position.y
+            ).normalize();
+            
+            this.velocity = direction.multiply(this.speed);
+            this.position = this.position.add(this.velocity);
+            
+            // Start charging when close enough
+            if (distanceToPlayer < 150) {
+                this.isCharging = true;
+                this.chargeDirection = direction;
+                this.chargeDuration = 0;
+            }
         }
 
-        if (distance < this.chargeRange && this.chargeCooldown <= 0) {
-            // Start charging
-            this.charging = true;
-            this.chargeDirection = new Vector2D(dx, dy).normalize();
-            this.color = '#ffaa00';
-        } else if (distance < this.detectionRange) {
-            // Move towards player
-            const direction = new Vector2D(dx, dy).normalize();
-            this.position.x += direction.x * this.speed;
-            this.position.y += direction.y * this.speed;
-        }
+        // Keep in bounds
+        this.position.x = Math.max(this.size, Math.min(800 - this.size, this.position.x));
+        this.position.y = Math.max(this.size, Math.min(600 - this.size, this.position.y));
 
-        return null;
+        return null; // No shooting
+    }
+
+    takeDamage(amount) {
+        this.health = Math.max(0, this.health - amount);
     }
 
     render(ctx) {
-        super.render(ctx);
+        // Body
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.position.x, this.position.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
         
-        if (this.charging) {
-            // Charging effect
-            ctx.strokeStyle = '#ffaa00';
+        // Charge indicator
+        if (this.isCharging) {
+            ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.arc(this.position.x, this.position.y, this.size + 5, 0, Math.PI * 2);
             ctx.stroke();
         }
+        
+        // Health bar
+        const barWidth = 40;
+        const barHeight = 4;
+        const barX = this.position.x - barWidth / 2;
+        const barY = this.position.y - this.size - 10;
+        
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(barX, barY, barWidth * (this.health / this.maxHealth), barHeight);
     }
 }

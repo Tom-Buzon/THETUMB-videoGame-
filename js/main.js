@@ -1,19 +1,14 @@
-// Initialize game when DOM is loaded
+// Initialize game when page loads
+let game;
+
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, starting game...');
-    
-    try {
-        const game = new Game();
-        console.log('Game initialized successfully');
-        
-        // Start game loop
-        game.gameLoop();
-        console.log('Game loop started');
-        
-    } catch (error) {
-        console.error('Error starting game:', error);
+    game = new Game();
+    game.gameLoop();
+});
+
+// Handle window resize
+window.addEventListener('resize', () => {
+    if (game) {
+        game.render();
     }
-    
-    // Prevent context menu on canvas
-    document.getElementById('gameCanvas').addEventListener('contextmenu', (e) => e.preventDefault());
 });

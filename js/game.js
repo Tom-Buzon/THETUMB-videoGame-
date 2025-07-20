@@ -5,322 +5,477 @@ class Game {
         this.player = new Player(400, 300);
         this.enemies = [];
         this.bullets = [];
-        this.particleSystem = new ParticleSystem();
-        this.roomGenerator = new RoomGenerator(800, 600);
-        this.currentDungeon = 1;
-        this.currentRoom = 1;
-        this.gameRunning = true;
-        this.keys = {};
-        this.obstacles = [];
         this.items = [];
+        this.obstacles = [];
+        this.currentRoom = 0;
+        this.currentDungeon = 1;
+        this.maxRooms = 3;
+        this.gameState = 'playing';
         
-        this.setupInput();
+        this.startTime = Date.now();
+        this.combo = 0;
+        this.comboTimer = 0;
+        this.score = 0;
+        this.lastKillTime = 0;
+        
+        this.audioSystem = new AudioSystem();
+        this.particleSystem = new ParticleSystem();
+        
+        this.setupEventListeners();
         this.generateRoom();
+        this.audioSystem.init();
+        this.updateUI();
     }
 
-    setupInput() {
-        // Keyboard events - capture all keys
+    setupEventListeners() {
         document.addEventListener('keydown', (e) => {
-            this.keys[e.key.toLowerCase()] = true;
-            e.preventDefault();
-        });
-        
-        document.addEventListener('keyup', (e) => {
-            this.keys[e.key.toLowerCase()] = false;
-            e.preventDefault();
-        });
-        
-        // Mouse events
-        this.canvas.addEventListener('mousedown', (e) => {
-            if (e.button === 0) {
-                const bullet = this.player.shoot(this.getMousePos(e));
-                if (bullet) {
-                    this.bullets.push(bullet);
-                    // Add muzzle flash particles
-                    const mousePos = this.getMousePos(e);
-                    const direction = new Vector2D(
-                        mousePos.x - this.player.position.x,
-                        mousePos.y - this.player.position.y
-                    ).normalize();
-                    this.particleSystem.addMuzzleFlash(
-                        this.player.position.x + direction.x * 20,
-                        this.player.position.y + direction.y * 20,
-                        '#ffffff',
-                        5
-                    );
-                }
+            this.player.keys[e.key.toLowerCase()] = true;
+            if (e.code === 'Space' && (this.gameState === 'gameOver' || this.gameState === 'victory')) {
+                this.restart();
             }
-            e.preventDefault();
         });
-        
+
+        document.addEventListener('keyup', (e) => {
+            this.player.keys[e.key.toLowerCase()] = false;
+        });
+
         this.canvas.addEventListener('mousemove', (e) => {
-            const mousePos = this.getMousePos(e);
-            this.player.setAim(mousePos.x, mousePos.y);
+            const rect = this.canvas.getBoundingClientRect();
+            this.player.mouse.x = e.clientX - rect.left;
+            this.player.mouse.y = e.clientY - rect.top;
+        });
+
+        this.canvas.addEventListener('mousedown', (e) => {
+            this.player.mouse.pressed = true;
+            this.audioSystem.resumeContext();
+            this.handlePlayerShoot();
+        });
+
+        this.canvas.addEventListener('mouseup', (e) => {
+            this.player.mouse.pressed = false;
         });
     }
 
-    getMousePos(e) {
-        const rect = this.canvas.getBoundingClientRect();
-        return {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
-        };
+    restart() {
+        this.player = new Player(400, 300);
+        this.enemies = [];
+        this.bullets = [];
+        this.items = [];
+        this.obstacles = [];
+        this.currentRoom = 0;
+        this.currentDungeon = 1;
+        this.gameState = 'playing';
+        this.startTime = Date.now();
+        this.combo = 0;
+        this.comboTimer = 0;
+        this.score = 0;
+        this.lastKillTime = 0;
+        
+        document.getElementById('gameOver').style.display = 'none';
+        document.getElementById('victory').style.display = 'none';
+        
+        this.generateRoom();
+        this.updateUI();
     }
 
     generateRoom() {
-        // Clear previous room
         this.enemies = [];
-        this.bullets = [];
-        this.obstacles = [];
         this.items = [];
+        this.obstacles = [];
         
         // Generate obstacles
-        this.obstacles = this.roomGenerator.generateObstacles(this.currentRoom);
-        
-        // Generate enemies based on room
-        const enemyCount = Math.min(3 + this.currentRoom, 8);
-        for (let i = 0; i < enemyCount; i++) {
-            this.spawnEnemy();
+        for (let i = 0; i < 3 + this.currentDungeon; i++) {
+            this.obstacles.push(new Obstacle(
+                Math.random() * 600 + 100,
+                Math.random() * 400 + 100,
+                30 + Math.random() * 50,
+                30 + Math.random() * 50
+            ));
         }
+
+        // Generate enemies
+        const enemyCount = 2 + this.currentDungeon + Math.floor(this.currentRoom / 2);
         
-        // Add health pack in room 2
-        if (this.currentRoom === 2) {
+        for (let i = 0; i < enemyCount; i++) {
+            let x, y;
+            do {
+                x = Math.random() * 700 + 50;
+                y = Math.random() * 500 + 50;
+            } while (this.isPositionOccupied(x, y));
+
+            const enemyType = this.getRandomEnemyType();
+            let enemy;
+            
+            switch (enemyType) {
+                case 'swarmer':
+                    enemy = new Swarmer(x, y);
+                    break;
+                case 'exploder':
+                    enemy = new Exploder(x, y);
+                    break;
+                case 'shooter':
+                    enemy = new Shooter(x, y);
+                    break;
+                case 'charger':
+                    enemy = new Charger(x, y);
+                    break;
+                case 'sniper':
+                    enemy = new Sniper(x, y);
+                    break;
+            }
+            
+            if (enemy) {
+                enemy.activated = true;
+                this.enemies.push(enemy);
+            }
+        }
+
+        // Boss room
+        if (this.currentRoom === this.maxRooms - 1) {
+            this.enemies = [new Boss(400, 300)];
+            this.enemies[0].activated = true;
+        }
+
+        // Generate items
+        if (Math.random() < 0.3) {
             this.items.push(new Item(
-                100 + Math.random() * 600,
-                100 + Math.random() * 400,
+                Math.random() * 700 + 50,
+                Math.random() * 500 + 50,
                 'health'
             ));
         }
+
+        // Play room change sound
+        this.audioSystem.playSound('roomChange');
     }
 
-    spawnEnemy() {
-        let x, y;
-        let attempts = 0;
-        do {
-            x = 50 + Math.random() * 700;
-            y = 50 + Math.random() * 500;
-            attempts++;
-        } while (this.isPositionOccupied(x, y) && attempts < 50);
-        
-        if (attempts < 50) {
-            const enemyType = Math.random();
-            let enemy;
-            
-            if (enemyType < 0.33) {
-                enemy = new Shooter(x, y);
-            } else if (enemyType < 0.66) {
-                enemy = new Exploder(x, y);
-            } else {
-                enemy = new Charger(x, y);
-            }
-            
-            this.enemies.push(enemy);
-        }
+    getRandomEnemyType() {
+        const types = ['swarmer', 'exploder', 'shooter'];
+        if (this.currentDungeon >= 2) types.push('charger');
+        if (this.currentDungeon >= 3) types.push('sniper');
+        return types[Math.floor(Math.random() * types.length)];
     }
 
     isPositionOccupied(x, y) {
-        const minDistance = 50;
-        
-        // Check player distance
-        if (Math.sqrt((x - this.player.position.x) ** 2 + (y - this.player.position.y) ** 2) < minDistance) {
-            return true;
-        }
-        
-        // Check obstacle distance
-        for (let obstacle of this.obstacles) {
-            if (Math.sqrt((x - obstacle.x - obstacle.width/2) ** 2 + (y - obstacle.y - obstacle.height/2) ** 2) < minDistance) {
-                return true;
-            }
-        }
-        
-        return false;
+        const minDistance = 100;
+        return this.obstacles.some(obs => 
+            Math.sqrt((obs.x - x) ** 2 + (obs.y - y) ** 2) < minDistance
+        );
     }
 
-    update(currentTime) {
-        if (!this.gameRunning) return;
-
-        // Update player
-        this.player.update(this.keys, this.obstacles);
-        
-        // Update enemies
-        for (let i = this.enemies.length - 1; i >= 0; i--) {
-            const enemy = this.enemies[i];
+    handlePlayerShoot() {
+        const playerBullet = this.player.shoot();
+        if (playerBullet) {
+            this.bullets.push(playerBullet);
             
-            // Activate enemies after 1 second delay
-            if (!enemy.activated && currentTime - enemy.spawnTime > 1000) {
-                enemy.activated = true;
-            }
-            
-            if (enemy.activated) {
-                const enemyBullet = enemy.update(this.player, currentTime);
-                
-                if (enemyBullet) {
-                    this.bullets.push(new Bullet(
-                        enemyBullet.position.x,
-                        enemyBullet.position.y,
-                        enemyBullet.velocity.x,
-                        enemyBullet.velocity.y,
-                        enemyBullet.damage,
-                        enemyBullet.color,
-                        enemyBullet.size,
-                        enemyBullet.owner
-                    ));
-                }
-            }
-            
-            if (enemy.health <= 0) {
-                this.enemies.splice(i, 1);
-                this.particleSystem.addExplosion(enemy.position.x, enemy.position.y, enemy.color, 12);
+            // Play correct weapon sound
+            const weaponState = this.player.weapon.currentState;
+            switch (weaponState) {
+                case 'AUTO':
+                    this.audioSystem.playSound('auto');
+                    break;
+                case 'SEMI':
+                    this.audioSystem.playSound('semi');
+                    break;
+                case 'SINGLE':
+                    this.audioSystem.playSound('single');
+                    break;
+                case 'BURST':
+                    this.audioSystem.playSound('semi');
+                    break;
             }
         }
-        
-        // Update bullets
-        for (let i = this.bullets.length - 1; i >= 0; i--) {
-            const bullet = this.bullets[i];
-            bullet.update();
-            
-            // Check bullet-enemy collisions
-            if (bullet.owner === 'player') {
-                for (let j = this.enemies.length - 1; j >= 0; j--) {
-                    const enemy = this.enemies[j];
-                    const distance = Math.sqrt(
-                        (bullet.position.x - enemy.position.x) ** 2 + 
-                        (bullet.position.y - enemy.position.y) ** 2
-                    );
-                    
-                    if (distance < bullet.size + enemy.size) {
-                        enemy.takeDamage(bullet.damage);
-                        this.bullets.splice(i, 1);
-                        this.particleSystem.addExplosion(bullet.position.x, bullet.position.y, '#ffffff', 6);
-                        break;
-                    }
-                }
+    }
+
+    update() {
+        if (this.gameState !== 'playing') return;
+
+        // Update combo timer
+        if (this.combo > 0) {
+            this.comboTimer--;
+            if (this.comboTimer <= 0) {
+                this.combo = 0;
+                this.hideComboDisplay();
             }
-            
-            // Check bullet-player collisions
-            if (bullet.owner === 'enemy') {
-                const distance = Math.sqrt(
-                    (bullet.position.x - this.player.position.x) ** 2 + 
-                    (bullet.position.y - this.player.position.y) ** 2
+        }
+
+        this.player.update();
+        
+        // Update enemies and collect their bullets
+        this.enemies.forEach((enemy, index) => {
+            if (enemy.health <= 0) {
+                this.particleSystem.addExplosion(
+                    enemy.position.x,
+                    enemy.position.y,
+                    enemy.color,
+                    8
                 );
                 
-                if (distance < bullet.size + this.player.size) {
-                    this.player.takeDamage(bullet.damage);
-                    this.bullets.splice(i, 1);
-                    this.particleSystem.addExplosion(bullet.position.x, bullet.position.y, '#ff0000', 8);
-                    continue;
+                if (enemy instanceof Exploder) {
+                    this.audioSystem.playSound('explosion');
                 }
+                
+                this.updateCombo();
+                this.score += 100 * this.combo;
+                this.enemies.splice(index, 1);
+                return;
+            }
+
+            let enemyBullets = null;
+            
+            if (enemy instanceof Boss) {
+                enemyBullets = enemy.update(this.player);
+                if (enemy.minions) {
+                    enemy.minions.forEach(minion => {
+                        if (minion.shoot) {
+                            const minionBullets = minion.shoot(this.player);
+                            if (minionBullets && Array.isArray(minionBullets)) {
+                                this.bullets.push(...minionBullets);
+                            }
+                        }
+                    });
+                }
+            } else {
+                enemyBullets = enemy.update(this.player);
             }
             
-            // Remove out-of-bounds bullets
-            if (bullet.position.x < 0 || bullet.position.x > 800 || 
-                bullet.position.y < 0 || bullet.position.y > 600) {
-                this.bullets.splice(i, 1);
+            if (enemyBullets && Array.isArray(enemyBullets)) {
+                this.bullets.push(...enemyBullets);
             }
+        });
+        
+        this.bullets.forEach(bullet => bullet.update());
+        
+        if (this.player.mouse.pressed && this.player.weapon.currentState === 'AUTO') {
+            this.handlePlayerShoot();
         }
+
+        // Check for weapon state change
+        const previousWeaponState = this.player.weapon.currentState;
+        this.player.weapon.updateState(this.player.health, this.player.maxHealth);
+        const newWeaponState = this.player.weapon.currentState;
         
-        // Update particle system
-        this.particleSystem.update();
-        
-        // Check room completion
+        if (previousWeaponState !== newWeaponState) {
+            this.showWeaponChange(newWeaponState);
+        }
+
+        this.handleCollisions();
+
         if (this.enemies.length === 0) {
             this.nextRoom();
         }
+
+        this.particleSystem.update();
+        this.updateUI();
+    }
+
+    showWeaponChange(weaponState) {
+        const weaponDiv = document.getElementById('weaponChange');
+        const weaponNames = {
+            'AUTO': 'AUTO RIFLE',
+            'BURST': 'BURST RIFLE',
+            'SEMI': 'SEMI-AUTO',
+            'SINGLE': 'SINGLE SHOT'
+        };
         
-        // Check player death
-        if (this.player.health <= 0) {
-            this.gameOver();
+        weaponDiv.textContent = weaponNames[weaponState];
+        weaponDiv.style.display = 'block';
+        weaponDiv.classList.add('weapon-change-animation');
+        
+        setTimeout(() => {
+            weaponDiv.style.display = 'none';
+            weaponDiv.classList.remove('weapon-change-animation');
+        }, 2000);
+    }
+
+    handleCollisions() {
+        // Player bullets vs enemies
+        for (let i = this.bullets.length - 1; i >= 0; i--) {
+            const bullet = this.bullets[i];
+            if (bullet.type === 'player') {
+                let hitObstacle = false;
+                for (const obstacle of this.obstacles) {
+                    if (obstacle.checkCollision(bullet)) {
+                        this.bullets.splice(i, 1);
+                        hitObstacle = true;
+                        break;
+                    }
+                }
+                
+                if (!hitObstacle) {
+                    for (let j = this.enemies.length - 1; j >= 0; j--) {
+                        const enemy = this.enemies[j];
+                        if (this.checkCollision(bullet, enemy)) {
+                            enemy.takeDamage(bullet.damage);
+                            this.bullets.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+            }
         }
-        
-        // Check item collection
+
+        // Enemy bullets vs player
+        for (let i = this.bullets.length - 1; i >= 0; i--) {
+            const bullet = this.bullets[i];
+            if (bullet.type === 'enemy') {
+                let hitObstacle = false;
+                for (const obstacle of this.obstacles) {
+                    if (obstacle.checkCollision(bullet)) {
+                        this.bullets.splice(i, 1);
+                        hitObstacle = true;
+                        break;
+                    }
+                }
+                
+                if (!hitObstacle && this.checkCollision(bullet, this.player)) {
+                    this.player.takeDamage(bullet.damage);
+                    this.bullets.splice(i, 1);
+                    
+                    this.combo = 0;
+                    this.comboTimer = 0;
+                    this.hideComboDisplay();
+                    
+                    if (this.player.health <= 0) {
+                        this.gameState = 'gameOver';
+                        document.getElementById('gameOver').style.display = 'flex';
+                        document.getElementById('finalScore').textContent = this.score;
+                    }
+                }
+            }
+        }
+
+        // Player vs obstacles
+        for (const obstacle of this.obstacles) {
+            obstacle.resolveCollision(this.player);
+        }
+
+        // Enemies vs obstacles
+        for (const enemy of this.enemies) {
+            for (const obstacle of this.obstacles) {
+                obstacle.resolveCollision(enemy);
+            }
+        }
+
+        // Player vs items
         for (let i = this.items.length - 1; i >= 0; i--) {
             const item = this.items[i];
-            const distance = Math.sqrt(
-                (item.position.x - this.player.position.x) ** 2 + 
-                (item.position.y - this.player.position.y) ** 2
-            );
-            
-            if (distance < item.size + this.player.size) {
+            if (this.checkCollision(this.player, item)) {
                 if (item.type === 'health') {
                     this.player.heal(25);
-                    this.particleSystem.addExplosion(item.position.x, item.position.y, '#00ff00', 10);
                 }
                 this.items.splice(i, 1);
             }
         }
+
+        // Remove off-screen bullets
+        this.bullets = this.bullets.filter(bullet => 
+            bullet.position.x > 0 && bullet.position.x < 800 &&
+            bullet.position.y > 0 && bullet.position.y < 600
+        );
+    }
+
+    updateCombo() {
+        const currentTime = Date.now();
+        
+        if (currentTime - this.lastKillTime < 2000) {
+            this.combo = Math.min(this.combo + 1, 50);
+        } else {
+            this.combo = 1;
+        }
+        
+        this.lastKillTime = currentTime;
+        this.comboTimer = 120;
+        
+        this.showComboDisplay();
+    }
+
+    showComboDisplay() {
+        const comboDiv = document.getElementById('combo');
+        if (this.combo > 1) {
+            comboDiv.textContent = `${this.combo}x KILL`;
+            comboDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                comboDiv.style.display = 'none';
+            }, 1000);
+        }
+    }
+
+    hideComboDisplay() {
+        document.getElementById('combo').style.display = 'none';
+    }
+
+    checkCollision(obj1, obj2) {
+        const distance = Math.sqrt(
+            (obj1.position.x - obj2.position.x) ** 2 +
+            (obj1.position.y - obj2.position.y) ** 2
+        );
+        return distance < (obj1.size || obj1.radius || 10) + (obj2.size || obj2.radius || 10);
     }
 
     nextRoom() {
         this.currentRoom++;
-        if (this.currentRoom > 3) {
-            this.currentRoom = 1;
+        if (this.currentRoom >= this.maxRooms) {
+            this.currentRoom = 0;
             this.currentDungeon++;
+            
+            if (this.currentDungeon > 4) {
+                this.gameState = 'victory';
+                document.getElementById('victory').style.display = 'flex';
+                document.getElementById('victoryScore').textContent = this.score;
+                return;
+            }
         }
+        
         this.generateRoom();
     }
 
+    updateUI() {
+        document.getElementById('scoreDisplay').textContent = `SCORE: ${this.score}`;
+        
+        const healthRatio = this.player.health / this.player.maxHealth;
+        document.getElementById('healthFill').style.width = `${healthRatio * 100}%`;
+        document.getElementById('healthText').textContent = `${this.player.health}/${this.player.maxHealth}`;
+        
+        document.getElementById('weaponName').textContent = this.player.weapon.getName().toUpperCase();
+        document.getElementById('damage').textContent = `DMG: ${this.player.weapon.getDamage()}`;
+        document.getElementById('fireRate').textContent = `RATE: ${this.player.weapon.getFireRate()}ms`;
+        
+        document.getElementById('dungeonName').textContent = `DUNGEON ${this.currentDungeon}`;
+        document.getElementById('roomInfo').textContent = `ROOM ${this.currentRoom + 1}/${this.maxRooms}`;
+        document.getElementById('enemiesLeft').textContent = `ENEMIES: ${this.enemies.length}`;
+        
+        const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+        const seconds = (elapsed % 60).toString().padStart(2, '0');
+        document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+    }
+
     render() {
-        // Clear canvas
-        this.ctx.fillStyle = '#0a0a0a';
+        this.ctx.clearRect(0, 0, 800, 600);
+        
+        this.ctx.fillStyle = '#0a0000';
         this.ctx.fillRect(0, 0, 800, 600);
         
-        // Boss room effect
-        if (this.currentRoom === 3) {
-            this.ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
-            this.ctx.fillRect(0, 0, 800, 600);
-            this.particleSystem.addBossAura(400, 300);
-        }
-        
-        // Render obstacles
-        this.obstacles.forEach(obstacle => {
-            this.ctx.fillStyle = obstacle.isDamaging ? '#ff0000' : '#444444';
-            this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-        });
-        
-        // Render items
+        this.obstacles.forEach(obstacle => obstacle.render(this.ctx));
         this.items.forEach(item => item.render(this.ctx));
-        
-        // Render player
-        this.player.render(this.ctx);
-        
-        // Render enemies
         this.enemies.forEach(enemy => enemy.render(this.ctx));
         
-        // Render bullets
+        this.enemies.forEach(enemy => {
+            if (enemy instanceof Boss && enemy.minions) {
+                enemy.minions.forEach(minion => minion.render(this.ctx));
+            }
+        });
+        
         this.bullets.forEach(bullet => bullet.render(this.ctx));
-        
-        // Render particle system
+        this.player.render(this.ctx);
         this.particleSystem.render(this.ctx);
-        
-        // Render UI
-        this.renderUI();
-    }
-
-    renderUI() {
-        // Health bar
-        const healthPercent = this.player.health / this.player.maxHealth;
-        document.getElementById('healthFill').style.width = `${healthPercent * 100}%`;
-        document.getElementById('healthText').textContent = `${Math.ceil(this.player.health)}/${this.player.maxHealth}`;
-        
-        // Weapon info
-        const weaponState = this.player.weapon.getCurrentState();
-        document.getElementById('weaponName').textContent = weaponState.name;
-        
-        // Dungeon info
-        document.getElementById('dungeonName').textContent = `Dungeon ${this.currentDungeon}`;
-        document.getElementById('roomInfo').textContent = `Room ${this.currentRoom}/3`;
-    }
-
-    gameOver() {
-        this.gameRunning = false;
-        alert(`Game Over! You reached Dungeon ${this.currentDungeon}, Room ${this.currentRoom}`);
     }
 
     gameLoop() {
-        if (this.gameRunning) {
-            this.update(Date.now());
-            this.render();
-            requestAnimationFrame(() => this.gameLoop());
-        }
+        this.update();
+        this.render();
+        requestAnimationFrame(() => this.gameLoop());
     }
 }

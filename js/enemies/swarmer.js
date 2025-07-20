@@ -1,20 +1,19 @@
-class Exploder {
+class Swarmer {
     constructor(x, y) {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(0, 0);
-        this.size = 15;
-        this.health = 40;
-        this.maxHealth = 40;
-        this.speed = 2;
-        this.color = '#ff00ff';
+        this.size = 12;
+        this.health = 30;
+        this.maxHealth = 30;
+        this.speed = 2.5;
+        this.color = '#ff6600';
         this.activated = false;
-        this.explosionRadius = 60;
     }
 
     update(player) {
         if (!this.activated) return null;
 
-        // Chase player
+        // Simple chase behavior
         const direction = new Vector2D(
             player.position.x - this.position.x,
             player.position.y - this.position.y
@@ -27,7 +26,7 @@ class Exploder {
         this.position.x = Math.max(this.size, Math.min(800 - this.size, this.position.x));
         this.position.y = Math.max(this.size, Math.min(600 - this.size, this.position.y));
 
-        return null;
+        return null; // No shooting
     }
 
     takeDamage(amount) {
@@ -44,22 +43,12 @@ class Exploder {
         ctx.fill();
         ctx.stroke();
         
-        // **SYMBOL D'EXPLOSION POUR IDENTIFICATION**
-        ctx.fillStyle = '#ffff00';
-        ctx.font = 'bold 12px Courier New';
-        ctx.textAlign = 'center';
-        ctx.fillText('💥', this.position.x, this.position.y + 4);
-        
-        // **CERCLE D'EXPLOSION EN POINTILLÉS**
-        if (this.health <= 10) {
-            ctx.strokeStyle = '#ff0000';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.arc(this.position.x, this.position.y, this.explosionRadius, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
+        // **YEUX ROUGES POUR IDENTIFICATION**
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(this.position.x - 4, this.position.y - 3, 2, 0, Math.PI * 2);
+        ctx.arc(this.position.x + 4, this.position.y - 3, 2, 0, Math.PI * 2);
+        ctx.fill();
         
         // Health bar
         const barWidth = 30;
