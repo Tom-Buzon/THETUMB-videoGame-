@@ -3,10 +3,11 @@ class Player {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(0, 0);
         this.size = 15;
-        this.health = 100;
-        this.maxHealth = 100;
+        this.health = 500;
+        this.maxHealth = 500;
         this.speed = 4;
         this.color = '#00ff00';
+        this.score = 0;
         
         this.keys = {};
         this.mouse = {
@@ -22,9 +23,9 @@ class Player {
         this.friction = 0.85;
     }
 
-    update() {
+    update(keys) {
         // **MOUVEMENT INDÉPENDANT DU RECUL**
-        this.handleMovement();
+        this.handleMovement(keys);
         
         // **APPLICATION DU RECUL**
         this.applyRecoil();
@@ -34,15 +35,15 @@ class Player {
         this.position.y = Math.max(this.size, Math.min(600 - this.size, this.position.y));
     }
 
-    handleMovement() {
+    handleMovement(keys) {
         // **MOUVEMENT DE BASE (INDÉPENDANT DU RECUL)**
         let moveX = 0;
         let moveY = 0;
         
-        if (this.keys['w'] || this.keys['z'] || this.keys['arrowup']) moveY -= 1;
-        if (this.keys['s'] || this.keys['arrowdown']) moveY += 1;
-        if (this.keys['a'] || this.keys['q'] || this.keys['arrowleft']) moveX -= 1;
-        if (this.keys['d'] || this.keys['arrowright']) moveX += 1;
+        if (keys['KeyW'] || keys['KeyZ'] || keys['ArrowUp']) moveY -= 1;
+        if (keys['KeyS'] || keys['ArrowDown']) moveY += 1;
+        if (keys['KeyA'] || keys['KeyQ'] || keys['ArrowLeft']) moveX -= 1;
+        if (keys['KeyD'] || keys['ArrowRight']) moveX += 1;
         
         // **NORMALISATION DU MOUVEMENT**
         if (moveX !== 0 || moveY !== 0) {
@@ -84,18 +85,32 @@ class Player {
         return null;
     }
 
-    takeDamage(amount) {
+    takeDamage(amount, source = 'unknown') {
         this.health = Math.max(0, this.health - amount);
+        console.log(`Player took ${amount} damage from ${source}`);
         
         // **FLASH ROUGE QUAND TOUCHÉ**
         const flash = document.createElement('div');
         flash.className = 'damage-flash';
+        console.log(`Player health: ${this.health}/${this.maxHealth}, updating weapon state...`);
+        this.weapon.updateState(this.health, this.maxHealth);
+        console.log(`Weapon state updated to: ${this.weapon.currentState}`);
         document.getElementById('gameContainer').appendChild(flash);
         setTimeout(() => flash.remove(), 200);
+        
+        // **DEATH CHECK - Always check if player should die**
+        if (this.health <= 0 && window.game) {
+            window.game.handlePlayerDeath();
+        }
     }
 
     heal(amount) {
         this.health = Math.min(this.maxHealth, this.health + amount);
+    }
+
+    setTarget(x, y) {
+        this.mouse.x = x;
+        this.mouse.y = y;
     }
 
     render(ctx) {
