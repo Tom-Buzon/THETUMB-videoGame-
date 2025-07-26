@@ -437,7 +437,7 @@ class Game {
         this.ctx.fillRect(10, 10, 200, 20);
         
         this.ctx.fillStyle = '#00ff00';
-        console.log(`Health bar rendering: ${this.player.health}/${this.player.maxHealth} = ${(this.player.health / this.player.maxHealth) * 100}%`);
+        //console.log(`Health bar rendering: ${this.player.health}/${this.player.maxHealth} = ${(this.player.health / this.player.maxHealth) * 100}%`);
         this.ctx.fillRect(10, 10, 200 * (this.player.health / this.player.maxHealth), 20);
         
         // Health text

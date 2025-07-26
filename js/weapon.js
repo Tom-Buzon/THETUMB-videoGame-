@@ -41,7 +41,7 @@ class Weapon {
 
     updateState(playerHealth, maxHealth) {
         const healthPercent = (playerHealth / maxHealth) * 100;
-        console.log(`Weapon state update: ${playerHealth}/${maxHealth} = ${healthPercent}%`);
+        //console.log(`Weapon state update: ${playerHealth}/${maxHealth} = ${healthPercent}%`);
         
         for (const [state, config] of Object.entries(this.states)) {
             if (healthPercent >= config.hpRange[0] && healthPercent <= config.hpRange[1]) {

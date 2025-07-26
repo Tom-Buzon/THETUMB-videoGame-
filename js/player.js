@@ -87,14 +87,14 @@ class Player {
 
     takeDamage(amount, source = 'unknown') {
         this.health = Math.max(0, this.health - amount);
-        console.log(`Player took ${amount} damage from ${source}`);
+        //console.log(`Player took ${amount} damage from ${source}`);
         
         // **FLASH ROUGE QUAND TOUCHÉ**
         const flash = document.createElement('div');
         flash.className = 'damage-flash';
-        console.log(`Player health: ${this.health}/${this.maxHealth}, updating weapon state...`);
+        //console.log(`Player health: ${this.health}/${this.maxHealth}, updating weapon state...`);
         this.weapon.updateState(this.health, this.maxHealth);
-        console.log(`Weapon state updated to: ${this.weapon.currentState}`);
+        //console.log(`Weapon state updated to: ${this.weapon.currentState}`);
         document.getElementById('gameContainer').appendChild(flash);
         setTimeout(() => flash.remove(), 200);
         
