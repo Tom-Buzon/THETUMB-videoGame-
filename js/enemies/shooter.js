@@ -9,8 +9,8 @@ class Shooter {
         this.color = '#44ff44';
         this.activated = false;
         this.shootCooldown = 0;
-        this.shootRange = 200;
-        this.deathAnimation = 0;
+        this.shootRange = 800;
+        this.deathAnimation = 0.0;
         this.isDying = false;
         this.scanlineOffset = 0;
     }
@@ -37,10 +37,10 @@ class Shooter {
             player.position.y - this.position.y
         ).normalize();
 
-        if (distanceToPlayer < 100) {
+        if (distanceToPlayer < 200) {
             // Move away from player
             this.velocity = direction.multiply(-this.speed);
-        } else if (distanceToPlayer > 150) {
+        } else if (distanceToPlayer > 250) {
             // Move closer to player
             this.velocity = direction.multiply(this.speed);
         } else {
@@ -50,8 +50,8 @@ class Shooter {
         this.position = this.position.add(this.velocity);
 
         // Keep in bounds
-        this.position.x = Math.max(this.size, Math.min(800 - this.size, this.position.x));
-        this.position.y = Math.max(this.size, Math.min(600 - this.size, this.position.y));
+        this.position.x = Math.max(this.size, Math.min(1400 - this.size, this.position.x));
+        this.position.y = Math.max(this.size, Math.min(1000 - this.size, this.position.y));
 
         // Shooting
         if (this.shootCooldown > 0) {
@@ -59,7 +59,7 @@ class Shooter {
         }
 
         if (distanceToPlayer <= this.shootRange && this.shootCooldown <= 0) {
-            this.shootCooldown = 60; // 1 second
+            this.shootCooldown = 30; // 1 second
             
             const direction = new Vector2D(
                 player.position.x - this.position.x,
@@ -87,7 +87,7 @@ class Shooter {
         // **DAMAGE FLASH EFFECT**
         if (this.health <= 0 && !this.isDying) {
             this.isDying = true;
-            this.deathAnimation = 0;
+            this.deathAnimation = 0.15;
             
             // **ENHANCED DEATH EFFECTS**
             if (window.game && window.game.particleSystem) {

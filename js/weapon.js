@@ -19,17 +19,17 @@ class Weapon {
             },
             SEMI: {
                 name: 'SEMI-AUTO',
-                hpRange: [25, 49],
-                fireRate: 800,
-                damage: 50,
+                hpRange: [11, 49],
+                fireRate: 600,
+                damage: 80,
                 recoilMult: 2.0,
                 color: '#ff6600'
             },
             SINGLE: {
                 name: 'SINGLE SHOT',
-                hpRange: [1, 24],
-                fireRate: 1500,
-                damage: 100,
+                hpRange: [1, 10],
+                fireRate: 1200,
+                damage: 200,
                 recoilMult: 5.0,
                 color: '#ff0000'
             }

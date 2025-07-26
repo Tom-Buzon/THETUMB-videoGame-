@@ -6,8 +6,8 @@ class Bullet {
         this.color = color;
         this.size = size;
         this.source = source;
-        this.life = 100;
-        this.maxLife = 100;
+        this.life = 150;
+        this.maxLife = 150;
         this.trail = [];
         this.maxTrailLength = 8;
         this.trailAlpha = 0.7;

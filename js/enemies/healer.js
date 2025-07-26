@@ -5,7 +5,7 @@ class Healer extends Enemy {
         this.health = this.maxHealth;
         this.healRadius = 100;
         this.healAmount = 1;
-        this.healInterval = 2000;
+        this.healInterval = 120;
         this.lastHeal = 0;
         this.shieldRadius = 60;
         this.deathAnimation = 0;
@@ -30,7 +30,7 @@ class Healer extends Enemy {
         const dy = this.position.y - player.position.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < 150) {
+        if (distance < 400) {
             const moveX = (dx / distance) * this.speed;
             const moveY = (dy / distance) * this.speed;
             this.position.x += moveX;
@@ -44,8 +44,8 @@ class Healer extends Enemy {
         }
 
         // **PROJECTILE ATTACK - Basic shooting when player is in range**
-        const shootRange = 200;
-        const shootCooldown = 90; // 1.5 seconds
+        const shootRange = 800;
+        const shootCooldown = 30; // 0.5 seconds
         
         if (distance <= shootRange && Math.random() < 0.02) { // Random chance to shoot
             const direction = new Vector2D(

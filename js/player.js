@@ -5,7 +5,7 @@ class Player {
         this.size = 15;
         this.health = 500;
         this.maxHealth = 500;
-        this.speed = 4;
+        this.speed = 6;
         this.color = '#00ff00';
         this.score = 0;
         
@@ -31,8 +31,8 @@ class Player {
         this.applyRecoil();
         
         // **LIMITES**
-        this.position.x = Math.max(this.size, Math.min(800 - this.size, this.position.x));
-        this.position.y = Math.max(this.size, Math.min(600 - this.size, this.position.y));
+        this.position.x = Math.max(this.size, Math.min(1400 - this.size, this.position.x));
+        this.position.y = Math.max(this.size, Math.min(1000 - this.size, this.position.y));
     }
 
     handleMovement(keys) {

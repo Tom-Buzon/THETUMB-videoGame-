@@ -70,7 +70,7 @@ class Charger {
             this.position = this.position.add(this.velocity);
             
             // Start charging when close enough
-            if (distanceToPlayer < 150) {
+            if (distanceToPlayer < 700) {
                 this.isCharging = true;
                 this.chargeDirection = direction;
                 this.chargeDuration = 0;
@@ -85,8 +85,8 @@ class Charger {
         }
 
         // Keep in bounds
-        this.position.x = Math.max(this.size, Math.min(800 - this.size, this.position.x));
-        this.position.y = Math.max(this.size, Math.min(600 - this.size, this.position.y));
+        this.position.x = Math.max(this.size, Math.min(1400 - this.size, this.position.x));
+        this.position.y = Math.max(this.size, Math.min(1000 - this.size, this.position.y));
 
         return null;
     }

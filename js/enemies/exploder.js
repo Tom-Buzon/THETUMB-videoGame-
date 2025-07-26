@@ -37,8 +37,8 @@ class Exploder {
         this.position = this.position.add(this.velocity);
 
         // Keep in bounds
-        this.position.x = Math.max(this.size, Math.min(800 - this.size, this.position.x));
-        this.position.y = Math.max(this.size, Math.min(600 - this.size, this.position.y));
+        this.position.x = Math.max(this.size, Math.min(1400 - this.size, this.position.x));
+        this.position.y = Math.max(this.size, Math.min(1000 - this.size, this.position.y));
 
         // Update glow based on proximity to player
         const distanceToPlayer = Math.sqrt(
@@ -61,7 +61,7 @@ class Exploder {
         // **DAMAGE FLASH EFFECT**
         if (this.health <= 0 && !this.isDying) {
             this.isDying = true;
-            this.deathAnimation = 0;
+            this.deathAnimation = 0.15;
             this.explode();
         }
     }

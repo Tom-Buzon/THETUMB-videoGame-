@@ -9,8 +9,8 @@ class Sniper {
         this.color = '#8844ff';
         this.activated = false;
         this.shootCooldown = 0;
-        this.shootRange = 300;
-        this.retreatDistance = 200;
+        this.shootRange = 1000;
+        this.retreatDistance = 800;
         this.deathAnimation = 0;
         this.isDying = false;
         this.scopeGlow = 0;
@@ -68,7 +68,7 @@ class Sniper {
         }
 
         if (distanceToPlayer <= this.shootRange && this.shootCooldown <= 0) {
-            this.shootCooldown = 120; // 2 seconds
+            this.shootCooldown = 60; // 2 seconds
             
             const bulletDirection = direction;
             return new Bullet(

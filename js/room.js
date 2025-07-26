@@ -21,27 +21,27 @@ class RoomGenerator {
         switch(dungeon) {
             case 1:
                 // Basic enemies - mostly chargers
-                enemyTypes = ['charger', 'charger', 'shooter'];
+                enemyTypes = ['charger', 'charger', 'shooter', 'sniper'];
                 count = Math.min(count, 5);
                 break;
             case 2:
                 // Mixed enemies
-                enemyTypes = ['charger', 'shooter', 'exploder'];
+                enemyTypes = ['charger', 'shooter', 'exploder', 'sniper'];
                 count = Math.min(count, 6);
                 break;
             case 3:
                 // More advanced enemies
-                enemyTypes = ['shooter', 'exploder', 'exploder', 'charger', 'swarmer'];
+                enemyTypes = ['shooter', 'exploder', 'exploder', 'charger', 'swarmer', 'sniper'];
                 count = Math.min(count, 7);
                 break;
             case 4:
                 // Elite enemies with healers
-                enemyTypes = ['shooter', 'healer', 'exploder', 'charger', 'swarmer'];
+                enemyTypes = ['shooter', 'healer', 'exploder', 'charger', 'swarmer', 'sniper'];
                 count = Math.min(count, 8);
                 break;
             default:
                 // High level - all types with increased difficulty
-                enemyTypes = ['shooter', 'healer', 'exploder', 'charger', 'swarmer', 'healer'];
+                enemyTypes = ['shooter', 'healer', 'exploder', 'charger', 'swarmer', 'healer', 'sniper'];
                 count = Math.min(count, 10);
         }
         
@@ -70,6 +70,9 @@ class RoomGenerator {
                     break;
                 case 'healer':
                     enemy = new Healer(x, y);
+                    break;
+                case 'sniper':
+                    enemy = new Sniper(x, y);
                     break;
             }
             
@@ -150,7 +153,7 @@ class RoomGenerator {
             
             // Progressive damaging obstacles
             const isDamaging = Math.random() < Math.min(0.3 + dungeon * 0.15, 0.8);
-            obstacles.push({ x, y, width, height, isDamaging });
+            obstacles.push(new Obstacle(x, y, width, height, isDamaging));
         }
         return obstacles;
     }

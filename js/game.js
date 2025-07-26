@@ -13,13 +13,20 @@ class Game {
                 throw new Error('Could not get 2D context');
             }
             
-            this.canvas.width = 800;
-            this.canvas.height = 600;
+            this.canvas.width = 1400;
+            this.canvas.height = 1000;
             
             console.log('Canvas initialized successfully');
             
             this.player = new Player(400, 300);
             console.log('Player created');
+            
+            // Progressive dungeon system
+            this.currentDungeon = 1;
+            this.currentRoom = 1;
+            this.maxDungeons = 5;
+            this.maxRooms = 3;
+            this.roomGenerator = new RoomGenerator(this.canvas.width, this.canvas.height);
             
             this.enemies = [];
             this.bullets = [];
@@ -38,11 +45,8 @@ class Game {
             this.initializeBackground();
             console.log('Background initialized');
             
-            this.spawnEnemies();
-            console.log('Enemies spawned');
-            
-            this.spawnObstacles();
-            console.log('Obstacles spawned');
+            this.loadRoom();
+            console.log('First room loaded');
             
             this.keys = {};
             this.setupEventListeners();
@@ -86,25 +90,68 @@ class Game {
         return colors[Math.floor(Math.random() * colors.length)];
     }
 
-    spawnEnemies() {
-        const enemyTypes = [Swarmer, Charger, Shooter, Sniper, Healer, Exploder];
-        for (let i = 0; i < 15; i++) {
-            const EnemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-            const x = Math.random() * (this.canvas.width - 100) + 50;
-            const y = Math.random() * (this.canvas.height - 100) + 50;
-            this.enemies.push(new EnemyType(x, y));
+    loadRoom() {
+        console.log(`Loading Dungeon ${this.currentDungeon}, Room ${this.currentRoom}`);
+        
+        // Clear existing entities
+        this.enemies = [];
+        this.obstacles = [];
+        this.bullets = [];
+        
+        // Generate room content using RoomGenerator
+        this.enemies = this.roomGenerator.generateEnemies(this.currentDungeon, this.currentRoom);
+        this.obstacles = this.roomGenerator.generateObstacles(this.currentDungeon, this.currentRoom);
+        
+        // DIAGNOSTIC: Check obstacle types
+        console.log('Obstacles loaded:', this.obstacles);
+        console.log('First obstacle type:', this.obstacles.length > 0 ? typeof this.obstacles[0].update : 'No obstacles');
+        console.log('First obstacle constructor:', this.obstacles.length > 0 ? this.obstacles[0].constructor.name : 'No obstacles');
+        
+        // Update boundary colors for boss rooms
+        const boundaryColor = this.currentRoom === 3 ? '#ff0000' : '#00ff00';
+        this.updateBoundaryColors(boundaryColor);
+        
+        // Play room transition sound
+        if (window.audio && window.audio.playSound) {
+            window.audio.playSound('roomChange');
+        }
+        
+        console.log(`Room loaded: ${this.enemies.length} enemies, ${this.obstacles.length} obstacles`);
+    }
+
+    updateBoundaryColors(color) {
+        // Update boundary colors for visual feedback
+        if (window.boundaries) {
+            window.boundaries.forEach(boundary => {
+                boundary.color = color;
+            });
         }
     }
 
-    spawnObstacles() {
-        // Add some hazardous obstacles
-        for (let i = 0; i < 8; i++) {
-            const x = Math.random() * (this.canvas.width - 60) + 30;
-            const y = Math.random() * (this.canvas.height - 60) + 30;
-            const width = 20 + Math.random() * 40;
-            const height = 20 + Math.random() * 40;
-            this.obstacles.push(new Obstacle(x, y, width, height, Math.random() > 0.5));
+    checkRoomCompletion() {
+        // Check if all enemies are defeated
+        if (this.enemies.length === 0) {
+            console.log(`Room ${this.currentRoom} of Dungeon ${this.currentDungeon} completed!`);
+            
+            // Progress to next room or dungeon
+            if (this.currentRoom < this.maxRooms) {
+                // Next room in same dungeon
+                this.currentRoom++;
+            } else if (this.currentDungeon < this.maxDungeons) {
+                // Next dungeon, reset to room 1
+                this.currentDungeon++;
+                this.currentRoom = 1;
+            } else {
+                // Game completed
+                console.log('All dungeons completed! Victory!');
+                return true;
+            }
+            
+            // Load the new room
+            this.loadRoom();
+            return true;
         }
+        return false;
     }
 
     setupEventListeners() {
@@ -163,9 +210,11 @@ class Game {
         
         // Update enemies
         this.enemies.forEach(enemy => {
-            const bullet = enemy.update(this.player, Date.now());
-            if (bullet) {
-                this.bullets.push(bullet);
+            const bullets = enemy.update(this.player, Date.now());
+            if (bullets && Array.isArray(bullets)) {
+                this.bullets.push(...bullets);  // spread: ajoute chaque bullet individuellement
+            } else if (bullets) {
+                this.bullets.push(bullets);     // au cas où un seul bullet est retourné (autres ennemis)
             }
             
             // Activate enemies near player
@@ -173,7 +222,7 @@ class Game {
                 (enemy.position.x - this.player.position.x) ** 2 +
                 (enemy.position.y - this.player.position.y) ** 2
             );
-            if (distance < 200) {
+            if (distance < 1000) {
                 enemy.activated = true;
             }
         });
@@ -230,6 +279,9 @@ class Game {
         if (this.player.health <= 0) {
             this.gameOver();
         }
+        
+        // Check for room completion
+        this.checkRoomCompletion();
     }
 
     render() {
@@ -398,6 +450,17 @@ class Game {
         
         // Enemy count
         this.ctx.fillText(`ENEMIES: ${this.enemies.length}`, 15, 65);
+        
+        // Dungeon/Room info
+        this.ctx.fillText(`DUNGEON: ${this.currentDungeon}/${this.maxDungeons}`, 15, 85);
+        this.ctx.fillText(`ROOM: ${this.currentRoom}/${this.maxRooms}`, 15, 105);
+        
+        // Boss room indicator
+        if (this.currentRoom === 3) {
+            this.ctx.fillStyle = '#ff0000';
+            this.ctx.fillText('BOSS ROOM', 15, 125);
+            this.ctx.fillStyle = '#ffffff';
+        }
         
         // Game over screen
         if (this.player.health <= 0) {

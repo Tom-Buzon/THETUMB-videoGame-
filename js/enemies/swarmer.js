@@ -34,8 +34,8 @@ class Swarmer {
         this.position = this.position.add(this.velocity);
 
         // Keep in bounds
-        this.position.x = Math.max(this.size, Math.min(800 - this.size, this.position.x));
-        this.position.y = Math.max(this.size, Math.min(600 - this.size, this.position.y));
+        this.position.x = Math.max(this.size, Math.min(1400 - this.size, this.position.x));
+        this.position.y = Math.max(this.size, Math.min(1000 - this.size, this.position.y));
 
         // **MELEE DAMAGE - Check collision with player**
         const distanceToPlayer = Math.sqrt(
