@@ -5,7 +5,7 @@ class Player {
         this.size = 15;
         this.health = 500;
         this.maxHealth = 500;
-        this.speed = 6;
+        this.speed = 1;
         this.color = '#00ff00';
         this.score = 0;
         
@@ -33,28 +33,66 @@ class Player {
         // **LIMITES**
         this.position.x = Math.max(this.size, Math.min(1400 - this.size, this.position.x));
         this.position.y = Math.max(this.size, Math.min(1000 - this.size, this.position.y));
+
+        this.velocity = this.velocity.add(this.acceleration);
+        this.position = this.position.add(this.velocity);
+
+        const totalMovement = this.velocity.add(this.recoilForce);
+    this.position = this.position.add(totalMovement);
+
+    const bounceDamping = 0.9;
+
+    if (this.position.x - this.size < 0) {
+        this.position.x = this.size;
+        if (totalMovement.x < 0) {
+            this.velocity.x *= -bounceDamping;
+            this.recoilForce.x *= -bounceDamping;
+        }
+    }
+    if (this.position.x + this.size > 1400) {
+        this.position.x = 1400 - this.size;
+        if (totalMovement.x > 0) {
+            this.velocity.x *= -bounceDamping;
+            this.recoilForce.x *= -bounceDamping;
+        }
+    }
+    if (this.position.y - this.size < 0) {
+        this.position.y = this.size;
+        if (totalMovement.y < 0) {
+            this.velocity.y *= -bounceDamping;
+            this.recoilForce.y *= -bounceDamping;
+        }
+    }
+    if (this.position.y + this.size > 1000) {
+        this.position.y = 1000 - this.size;
+        if (totalMovement.y > 0) {
+            this.velocity.y *= -bounceDamping;
+            this.recoilForce.y *= -bounceDamping;
+        }
+    }
+
+        this.recoilForce = this.recoilForce.multiply(this.friction);
+
+        this.velocity = this.velocity.multiply(0.8);  /////////////////////////////////////////////   Vitesse finale du player
+
     }
 
     handleMovement(keys) {
-        // **MOUVEMENT DE BASE (INDÉPENDANT DU RECUL)**
-        let moveX = 0;
-        let moveY = 0;
-        
-        if (keys['KeyW'] || keys['KeyZ'] || keys['ArrowUp']) moveY -= 1;
-        if (keys['KeyS'] || keys['ArrowDown']) moveY += 1;
-        if (keys['KeyA'] || keys['KeyQ'] || keys['ArrowLeft']) moveX -= 1;
-        if (keys['KeyD'] || keys['ArrowRight']) moveX += 1;
-        
-        // **NORMALISATION DU MOUVEMENT**
-        if (moveX !== 0 || moveY !== 0) {
-            const length = Math.sqrt(moveX * moveX + moveY * moveY);
-            moveX /= length;
-            moveY /= length;
-        }
-        
-        // **APPLICATION DU MOUVEMENT**
-        this.position.x += moveX * this.speed;
-        this.position.y += moveY * this.speed;
+    let moveX = 0;
+    let moveY = 0;
+
+    if (keys['KeyW'] || keys['KeyZ'] || keys['ArrowUp']) moveY -= 1;
+    if (keys['KeyS'] || keys['ArrowDown']) moveY += 1;
+    if (keys['KeyA'] || keys['KeyQ'] || keys['ArrowLeft']) moveX -= 1;
+    if (keys['KeyD'] || keys['ArrowRight']) moveX += 1;
+
+    if (moveX !== 0 || moveY !== 0) {
+        const length = Math.sqrt(moveX * moveX + moveY * moveY);
+        moveX /= length;
+        moveY /= length;
+    }
+
+    this.acceleration = new Vector2D(moveX * this.speed, moveY * this.speed);
     }
 
     applyRecoil() {
@@ -73,9 +111,7 @@ class Player {
         
         if (bullet) {
             // **CALCUL DU RECUL CORRIGÉ**
-            const healthFactor = 1 - (this.health / this.maxHealth);
-            const recoilMultiplier = 0.5 + healthFactor * 2; // 0.5 à 2.5
-            
+            const recoilMultiplier = this.weapon.states[this.weapon.currentState].recoilMult;
             const recoil = direction.multiply(-bullet.damage * recoilMultiplier);
             this.recoilForce = this.recoilForce.add(recoil);
             
@@ -112,6 +148,8 @@ class Player {
         this.mouse.x = x;
         this.mouse.y = y;
     }
+
+    
 
     render(ctx) {
         // **CORPS DU JOUEUR**
@@ -150,5 +188,7 @@ class Player {
         
         ctx.fillStyle = '#ff0000';
         ctx.fillRect(barX, barY, barWidth * (this.health / this.maxHealth), barHeight);
+
+        
     }
 }

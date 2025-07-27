@@ -6,7 +6,7 @@ class Weapon {
                 hpRange: [75, 100],
                 fireRate: 100,
                 damage: 10,
-                recoilMult: 0.5,
+                recoilMult: 0.3,
                 color: '#00ff00'
             },
             BURST: {
@@ -14,7 +14,7 @@ class Weapon {
                 hpRange: [50, 74],
                 fireRate: 300,
                 damage: 25,
-                recoilMult: 1.0,
+                recoilMult: 0.5,
                 color: '#ffff00'
             },
             SEMI: {
@@ -22,7 +22,7 @@ class Weapon {
                 hpRange: [11, 49],
                 fireRate: 600,
                 damage: 80,
-                recoilMult: 2.0,
+                recoilMult: 0.7,
                 color: '#ff6600'
             },
             SINGLE: {
@@ -30,7 +30,7 @@ class Weapon {
                 hpRange: [1, 10],
                 fireRate: 1200,
                 damage: 200,
-                recoilMult: 5.0,
+                recoilMult: 0.9,
                 color: '#ff0000'
             }
         };
