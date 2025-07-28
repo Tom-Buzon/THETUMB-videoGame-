@@ -113,23 +113,23 @@ class RoomGenerator {
         switch(dungeon) {
             case 1:
                 // Simple static obstacles
-                count = 3;
+                count = 7;
                 break;
             case 2:
                 // More complex layouts
-                count = 5;
+                count = 10;
                 break;
             case 3:
                 // Damaging obstacles introduced
-                count = 6;
+                count = 13;
                 break;
             case 4:
                 // Complex maze-like patterns
-                count = 8;
+                count = 15;
                 break;
             default:
                 // Maximum chaos
-                count = 10 + Math.floor(dungeon / 2);
+                count = 15 + Math.floor(dungeon / 2);
         }
         
         for (let i = 0; i < count; i++) {
