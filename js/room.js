@@ -158,15 +158,147 @@ class RoomGenerator {
         return obstacles;
     }
 
-    generateItems(dungeon) {
-        const items = [];
-        if (Math.random() < 0.5) {
-            items.push(new Item(
-                100 + Math.random() * (this.width - 200),
-                100 + Math.random() * (this.height - 200),
-                'health'
-            ));
+    generateItems(itemManager) {
+        // Spawn random items using the advanced ItemManager
+        const itemTypes = ['Medkit', 'Valkyrie', 'Shield', 'Bazooka', 'BlackHole',
+                          'Companion', 'Ghost', 'TimeBubble', 'GodPlan', 'RandomBox', 'Ricochet'];
+        
+        // Progressive item spawning based on dungeon level
+        const dungeon = itemManager.game.currentDungeon;
+        const room = itemManager.game.currentRoom;
+        
+        // Base item count with progression
+        let baseItemCount = 1 + Math.floor(dungeon * 0.5) + Math.floor(room * 0.3);
+        // Add some randomness but keep it progressive
+        const itemCount = Math.max(1, baseItemCount + Math.floor(Math.random() * 2) - 1);
+        
+        // Item rarity system - powerful items are rarer in early game
+        const getItemByRarity = (dungeonLevel) => {
+            // Define item rarities (common, uncommon, rare, epic)
+            const rarities = {
+                common: ['Medkit', 'Valkyrie'],
+                uncommon: ['Shield', 'Ghost', 'Companion'],
+                rare: ['Bazooka', 'Ricochet', 'TimeBubble'],
+                epic: ['BlackHole', 'GodPlan', 'RandomBox']
+            };
+            
+            // Adjust rarities based on dungeon level
+            let availableItems = [];
+            
+            // Always include common items
+            availableItems = availableItems.concat(rarities.common);
+            
+            // Add uncommon items from dungeon 1
+            if (dungeonLevel >= 1) {
+                availableItems = availableItems.concat(rarities.uncommon);
+            }
+            
+            // Add rare items from dungeon 2
+            if (dungeonLevel >= 2) {
+                availableItems = availableItems.concat(rarities.rare);
+            }
+            
+            // Add epic items from dungeon 3
+            if (dungeonLevel >= 3) {
+                availableItems = availableItems.concat(rarities.epic);
+            }
+            
+            // Weighted selection - favor common items in early game
+            let weightedItems = [];
+            availableItems.forEach(item => {
+                let weight = 1;
+                if (rarities.common.includes(item)) weight = 5;
+                else if (rarities.uncommon.includes(item)) weight = 3;
+                else if (rarities.rare.includes(item)) weight = 2;
+                else if (rarities.epic.includes(item)) weight = 1;
+                
+                // Reduce epic item chances in early dungeons
+                if (rarities.epic.includes(item) && dungeonLevel < 3) {
+                    weight = 0.1; // Even rarer in early game
+                }
+                
+                // Special handling for the most powerful items
+                if (item === 'BlackHole' && dungeonLevel < 4) {
+                    weight = 0.05; // Extremely rare before dungeon 4
+                }
+                if (item === 'GodPlan' && dungeonLevel < 5) {
+                    weight = 0.05; // Extremely rare before dungeon 5
+                }
+                
+                for (let i = 0; i < weight; i++) {
+                    weightedItems.push(item);
+                }
+            });
+            
+            return weightedItems[Math.floor(Math.random() * weightedItems.length)];
+        };
+        
+        // Track spawned item positions to avoid clustering
+        const spawnedPositions = [];
+        const minDistance = 150; // Minimum distance between items
+        
+        for (let i = 0; i < itemCount; i++) {
+            // Get item type based on rarity system
+            const type = getItemByRarity(dungeon);
+            
+            // Find a position that's not too close to other items
+            let x, y, validPosition = false;
+            let attempts = 0;
+            
+            while (!validPosition && attempts < 20) {
+                x = 100 + Math.random() * (this.width - 200);
+                y = 100 + Math.random() * (this.height - 200);
+                
+                // Check distance to other spawned items
+                validPosition = true;
+                for (const pos of spawnedPositions) {
+                    const distance = Math.sqrt(Math.pow(x - pos.x, 2) + Math.pow(y - pos.y, 2));
+                    if (distance < minDistance) {
+                        validPosition = false;
+                        break;
+                    }
+                }
+                
+                attempts++;
+            }
+            
+            // If we couldn't find a valid position, just use the last one
+            if (!validPosition && spawnedPositions.length > 0) {
+                const lastPos = spawnedPositions[spawnedPositions.length - 1];
+                // Place it at a fixed offset from the last position
+                x = (lastPos.x + minDistance) % (this.width - 200) + 100;
+                y = (lastPos.y + minDistance) % (this.height - 200) + 100;
+            }
+            
+            // Spawn the item
+            const item = itemManager.spawnItem(type, x, y);
+            
+            // Add visual feedback when items spawn
+            if (item && itemManager.game.particleSystem) {
+                // Add spawn particles
+                for (let j = 0; j < 20; j++) {
+                    const angle = (j / 20) * Math.PI * 2;
+                    const speed = 2 + Math.random() * 3;
+                    itemManager.game.particleSystem.addParticle({
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        life: 30,
+                        decay: 0.95,
+                        color: '#FFFF00', // Yellow particles for item spawn
+                        size: 2 + Math.random() * 3
+                    });
+                }
+                
+                // Play spawn sound
+                if (window.audio && window.audio.playSound) {
+                    window.audio.playSound("itemSpawn");
+                }
+            }
+            
+            // Store position to avoid clustering
+            spawnedPositions.push({x, y});
         }
-        return items;
     }
 }

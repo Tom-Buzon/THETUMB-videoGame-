@@ -17,7 +17,38 @@ class GhostItem {
     }
 
     activate() {
+        // Check if item is on cooldown
+        if (this.game.player.isItemOnCooldown('ghost')) {
+            return;
+        }
+        
+        // Activate ghost effect
         this.game.player.ghost = true;
-        setTimeout(() => { this.game.player.ghost = false; }, 5000);
+        this.game.player.activateItemEffect('ghost', 5000); // 5 seconds
+        
+        // Set cooldown
+        this.game.player.setItemCooldown('ghost', 20000); // 20 seconds cooldown
+        
+        // Add visual feedback
+        if (this.game.particleSystem) {
+            // Add ghost particles
+            for (let i = 0; i < 20; i++) {
+                this.game.particleSystem.addParticle({
+                    x: this.game.player.position.x + (Math.random() - 0.5) * 30,
+                    y: this.game.player.position.y + (Math.random() - 0.5) * 30,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    life: 30,
+                    decay: 0.9,
+                    color: '#cccccc',
+                    size: 2 + Math.random() * 2
+                });
+            }
+        }
+        
+        // Play sound
+        if (window.audio && window.audio.playSound) {
+            window.audio.playSound("itemPickup");
+        }
     }
 }

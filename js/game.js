@@ -18,8 +18,17 @@ class Game {
             
             console.log('Canvas initialized successfully');
             
-            this.player = new Player(400, 300);
+            this.player = new Player(400, 300, this);
             console.log('Player created');
+            
+            // Initialize UI
+            this.ui = new DoomUI(this.canvas, this.ctx);
+            this.ui.setGame(this);
+            console.log('UI created');
+            
+            // Initialize ItemManager
+            this.itemManager = new ItemManager(this);
+            console.log('ItemManager created');
             
             // Progressive dungeon system
             this.currentDungeon = 1;
@@ -111,9 +120,17 @@ class Game {
         const boundaryColor = this.currentRoom === 3 ? '#ff0000' : '#00ff00';
         this.updateBoundaryColors(boundaryColor);
         
+        // Generate items using ItemManager
+        this.roomGenerator.generateItems(this.itemManager);
+        
         // Play room transition sound
         if (window.audio && window.audio.playSound) {
             window.audio.playSound('roomChange');
+        }
+        
+        // Show room change message
+        if (this.ui) {
+            this.ui.showRoomChangeMessage(this.currentDungeon, this.currentRoom);
         }
         
         console.log(`Room loaded: ${this.enemies.length} enemies, ${this.obstacles.length} obstacles`);
@@ -170,15 +187,60 @@ class Game {
             this.player.setTarget(mouseX, mouseY);
         });
         
-        this.canvas.addEventListener('click', (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            const bullet = this.player.shoot(mouseX, mouseY);
-            if (bullet) {
-                this.bullets.push(bullet);
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0) { // Left mouse button
+                this.player.startShooting();
             }
         });
+        
+        this.canvas.addEventListener('mouseup', (e) => {
+            if (e.button === 0) { // Left mouse button
+                this.player.stopShooting();
+            }
+        });
+        
+        // Also handle mouse leaving the canvas
+        this.canvas.addEventListener('mouseleave', () => {
+            this.player.stopShooting();
+        });
+        
+        // Add right-click event listener for bazooka
+        this.canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault(); // Prevent context menu from appearing
+            
+            // Check if player has bazooka active
+            if (this.player.weaponMode === 'BAZOOKA') {
+                // Shoot backward or dash forward
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // For now, let's implement the dash forward functionality
+                this.player.dashForward();
+            }
+        });
+        
+        // Add click event listener for UI interactions
+        this.canvas.addEventListener('click', (e) => {
+            this.handleCanvasClick(e);
+        });
+    }
+    
+    handleCanvasClick(e) {
+        // Handle canvas click events
+        if (this.isGameOver && this.ui && this.ui.showGameOver) {
+            const rect = this.canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            
+            // Check if click is on restart button
+            if (this.ui.isClickOnRestartButton(clickX, clickY)) {
+                // Restart the game
+                if (window.restartGame) {
+                    window.restartGame();
+                }
+            }
+        }
     }
 
     update() {
@@ -186,6 +248,11 @@ class Game {
         this.nebulaOffset += 0.2;
         this.scanlineOffset += 0.5;
         this.crtGlow = 0.5 + Math.sin(this.gameTime * 0.01) * 0.3;
+        
+        // Update UI
+        if (this.ui) {
+            this.ui.update(16); // Assuming 60 FPS, 16ms per frame
+        }
         
         // Update background stars
         this.backgroundStars.forEach(star => {
@@ -239,7 +306,7 @@ class Game {
             if (expired) return false;
             
             // Check collision with enemies
-            if (bullet.source === 'player') {
+            if (bullet.source === 'player' || bullet.source === 'companion') {
                 for (let i = this.enemies.length - 1; i >= 0; i--) {
                     const enemy = this.enemies[i];
                     if (bullet.checkCollision(enemy)) {
@@ -248,6 +315,28 @@ class Game {
                         
                         if (enemy.health <= 0 || (enemy.isDying && enemy.deathAnimation >= 1)) {
                             this.enemies.splice(i, 1);
+                            
+                            // Add score for killing enemy
+                            if (this.ui) {
+                                // Different enemies could have different point values
+                                let points = 100;
+                                if (enemy.constructor.name === 'Boss') {
+                                    points = 1000;
+                                } else if (enemy.constructor.name === 'Exploder') {
+                                    points = 150;
+                                } else if (enemy.constructor.name === 'Shooter') {
+                                    points = 120;
+                                } else if (enemy.constructor.name === 'Charger') {
+                                    points = 80;
+                                } else if (enemy.constructor.name === 'Swarmer') {
+                                    points = 50;
+                                } else if (enemy.constructor.name === 'Healer') {
+                                    points = 200;
+                                } else if (enemy.constructor.name === 'Sniper') {
+                                    points = 180;
+                                }
+                                this.ui.addScore(points);
+                            }
                         }
                         return false;
                     }
@@ -282,6 +371,9 @@ class Game {
         
         // Check for room completion
         this.checkRoomCompletion();
+        
+        // Update items
+        this.itemManager.update();
     }
 
     render() {
@@ -311,6 +403,9 @@ class Game {
         if (Math.random() < 0.001) {
             this.renderGlitch();
         }
+        
+        // Render items
+        this.itemManager.draw(this.ctx);
         
         // Render UI
         this.renderUI();
@@ -432,57 +527,31 @@ class Game {
     }
 
     renderUI() {
-        // Health bar
-        this.ctx.fillStyle = '#333333';
-        this.ctx.fillRect(10, 10, 200, 20);
-        
-        this.ctx.fillStyle = '#00ff00';
-        //console.log(`Health bar rendering: ${this.player.health}/${this.player.maxHealth} = ${(this.player.health / this.player.maxHealth) * 100}%`);
-        this.ctx.fillRect(10, 10, 200 * (this.player.health / this.player.maxHealth), 20);
-        
-        // Health text
-        this.ctx.fillStyle = '#ffffff';
-        this.ctx.font = '14px monospace';
-        this.ctx.fillText(`HEALTH: ${this.player.health}/${this.player.maxHealth}`, 15, 25);
-        
-        // Score
-        this.ctx.fillText(`SCORE: ${this.player.score}`, 15, 45);
-        
-        // Enemy count
-        this.ctx.fillText(`ENEMIES: ${this.enemies.length}`, 15, 65);
-        
-        // Dungeon/Room info
-        this.ctx.fillText(`DUNGEON: ${this.currentDungeon}/${this.maxDungeons}`, 15, 85);
-        this.ctx.fillText(`ROOM: ${this.currentRoom}/${this.maxRooms}`, 15, 105);
-        
-        // Boss room indicator
-        if (this.currentRoom === 3) {
-            this.ctx.fillStyle = '#ff0000';
-            this.ctx.fillText('BOSS ROOM', 15, 125);
-            this.ctx.fillStyle = '#ffffff';
-        }
-        
-        // Game over screen
-        if (this.player.health <= 0) {
-            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        // Use the DoomUI to render the interface
+        if (this.ui) {
+            this.ui.draw();
             
-            this.ctx.fillStyle = '#ff0000';
-            this.ctx.font = '48px monospace';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2);
-            
-            this.ctx.font = '24px monospace';
-            this.ctx.fillText('Press F5 to restart', this.canvas.width / 2, this.canvas.height / 2 + 50);
+            // Draw game over screen if game is over
+            if (this.isGameOver && this.ui.showGameOver) {
+                this.ui.drawGameOver();
+            }
         }
     }
 
     gameOver() {
         // Game over logic
+        this.isGameOver = true;
+        
+        // Display game over screen through UI
+        if (this.ui) {
+            this.ui.showGameOver = true;
+        }
     }
 
     gameLoop() {
-        this.update();
+        if (!this.isGameOver) {
+            this.update();
+        }
         this.render();
         requestAnimationFrame(() => this.gameLoop());
     }

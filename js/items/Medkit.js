@@ -17,7 +17,39 @@ class MedkitItem {
     }
 
     activate() {
-        this.game.player.hp = Math.min(this.game.player.hp + 50, GameConfig.player.maxHP);
-        this.game.audioManager.playSound("itemPickup");
+        // Check if item is on cooldown
+        if (this.game.player.isItemOnCooldown('medkit')) {
+            return;
+        }
+        
+        // Heal player
+        this.game.player.heal(50);
+        
+        // Set cooldown
+        this.game.player.setItemCooldown('medkit', 10000); // 10 seconds cooldown
+        
+        // Add visual feedback
+        if (this.game.particleSystem) {
+            // Add healing particles
+            for (let i = 0; i < 20; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 2;
+                this.game.particleSystem.addParticle({
+                    x: this.game.player.position.x,
+                    y: this.game.player.position.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 30,
+                    decay: 0.9,
+                    color: '#00ff99',
+                    size: 2 + Math.random() * 2
+                });
+            }
+        }
+        
+        // Play sound
+        if (window.audio && window.audio.playSound) {
+            window.audio.playSound("itemPickup");
+        }
     }
 }

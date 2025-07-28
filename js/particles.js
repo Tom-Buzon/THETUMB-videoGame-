@@ -170,6 +170,11 @@ class ParticleSystem {
         }
     }
 
+    addParticle(particle) {
+        // Add a generic particle with custom properties
+        this.particles.push(particle);
+    }
+
     addDeathBurst(x, y, color, size) {
         // Create corpse fade-out effect
         for (let i = 0; i < size * 2; i++) {

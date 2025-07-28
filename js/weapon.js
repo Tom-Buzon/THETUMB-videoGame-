@@ -1,9 +1,17 @@
 class Weapon {
     constructor() {
         this.states = {
+            MINIGUN: {
+                name: 'MINI GUN',
+                hpRange: [90, 100],
+                fireRate: 50,
+                damage: 6,
+                recoilMult: 0.1,
+                color: '#00ff00'
+            },
             AUTO: {
                 name: 'AUTO RIFLE',
-                hpRange: [75, 100],
+                hpRange: [75, 89],
                 fireRate: 100,
                 damage: 10,
                 recoilMult: 0.3,
@@ -19,7 +27,7 @@ class Weapon {
             },
             SEMI: {
                 name: 'SEMI-AUTO',
-                hpRange: [11, 49],
+                hpRange: [25, 49],
                 fireRate: 600,
                 damage: 80,
                 recoilMult: 0.7,
@@ -27,12 +35,21 @@ class Weapon {
             },
             SINGLE: {
                 name: 'SINGLE SHOT',
-                hpRange: [1, 10],
+                hpRange: [11, 24],
                 fireRate: 1200,
                 damage: 200,
                 recoilMult: 0.9,
                 color: '#ff0000'
+            },
+            LASER: {
+                name: 'LASER',
+                hpRange: [1, 10],
+                fireRate: 1200,
+                damage: 800,
+                recoilMult: 1,
+                color: '#ff0000'
             }
+        
         };
         
         this.currentState = 'AUTO';
@@ -43,12 +60,23 @@ class Weapon {
         const healthPercent = (playerHealth / maxHealth) * 100;
         //console.log(`Weapon state update: ${playerHealth}/${maxHealth} = ${healthPercent}%`);
         
+        // Store the current state before updating
+        const previousState = this.currentState;
+        
         for (const [state, config] of Object.entries(this.states)) {
             if (healthPercent >= config.hpRange[0] && healthPercent <= config.hpRange[1]) {
                 this.currentState = state;
                 break;
             }
         }
+        
+        // Return the new weapon name if the state changed
+        if (previousState !== this.currentState) {
+            return this.states[this.currentState].name;
+        }
+        
+        // Return null if no change occurred
+        return null;
     }
 
     shoot(x, y, direction) {
