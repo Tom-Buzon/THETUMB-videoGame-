@@ -319,6 +319,25 @@ export class Game {
             const expired = bullet.update();
             if (expired) return false;
             
+            // Check collision with healer protection fields
+            for (let i = this.enemies.length - 1; i >= 0; i--) {
+                const enemy = this.enemies[i];
+                // Check if this enemy is a healer with an active protection field
+                if (enemy.constructor.name === 'Healer' && enemy.protectedEnemy && !enemy.isDying) {
+                    // Calculate distance between bullet and protected enemy
+                    const dx = bullet.position.x - enemy.protectedEnemy.position.x;
+                    const dy = bullet.position.y - enemy.protectedEnemy.position.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Check if bullet is within the protection field
+                    if (distance < enemy.protectionRadius) {
+                        // Bullet is blocked by protection field, destroy it
+                        bullet.addImpactSparks(bullet.position.x, bullet.position.y);
+                        return false;
+                    }
+                }
+            }
+            
             // Check collision with enemies
             if (bullet.source === 'player' || bullet.source === 'companion') {
                 for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -356,6 +375,36 @@ export class Game {
                     }
                 }
             } else {
+                // Check collision with healer protection fields for enemy bullets
+                let blockedByProtectionField = false;
+                for (let i = this.enemies.length - 1; i >= 0; i--) {
+                    const enemy = this.enemies[i];
+                    // Check if this enemy is a healer with an active protection field
+                    if (enemy.constructor.name === 'Healer' && enemy.protectedEnemy && !enemy.isDying) {
+                        // Check if the protected enemy is the player
+                        // Note: In the current implementation, the healer protects other enemies, not the player
+                        // But we'll keep this check in case of future modifications
+                        // For now, we're just checking if the bullet hits any protection field
+                        
+                        // Calculate distance between bullet and protected enemy
+                        const dx = bullet.position.x - enemy.protectedEnemy.position.x;
+                        const dy = bullet.position.y - enemy.protectedEnemy.position.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        // Check if bullet is within the protection field
+                        if (distance < enemy.protectionRadius) {
+                            // Bullet is blocked by protection field, destroy it
+                            bullet.addImpactSparks(bullet.position.x, bullet.position.y);
+                            blockedByProtectionField = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (blockedByProtectionField) {
+                    return false;
+                }
+                
                 // Enemy bullets hitting player
                 if (bullet.checkCollision(this.player)) {
                     this.player.takeDamage(bullet.damage, bullet.source);

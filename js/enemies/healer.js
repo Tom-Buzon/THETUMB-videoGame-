@@ -1,9 +1,10 @@
-import { ENEMY_CONFIG } from '../config.js';
+import { ENEMY_CONFIG, ROOM_CONFIG } from '../config.js';
 import { Enemy } from '../enemy.js';
 import { Vector2D } from '../vector2d.js';
+import { Bullet } from '../bullet.js';
 
 export class Healer extends Enemy {
-    constructor(x, y) {
+    constructor(x, y, enemies = []) {
         super(x, y);
         this.size = ENEMY_CONFIG.HEALER.SIZE;
         this.color = ENEMY_CONFIG.HEALER.COLOR;
@@ -19,6 +20,40 @@ export class Healer extends Enemy {
         this.isDying = false;
         this.healPulse = 0;
         this.energyField = 0;
+        
+        // Protection field properties
+        this.protectionRadius = 80;
+        this.protectedEnemy = null;
+        this.originalEnemyVulnerability = null;
+        
+        // Choose a random enemy to protect (excluding self and other healers)
+        this.chooseProtectedEnemy(enemies);
+    }
+    
+    chooseProtectedEnemy(enemies) {
+        // Filter out self and other healers
+        const validEnemies = enemies.filter(enemy => 
+            enemy !== this && !(enemy instanceof Healer) && enemy.health > 0
+        );
+        
+        if (validEnemies.length > 0) {
+            // Choose a random enemy to protect
+            this.protectedEnemy = validEnemies[Math.floor(Math.random() * validEnemies.length)];
+            // Store the original vulnerability state
+            this.originalEnemyVulnerability = this.protectedEnemy.takeDamage;
+            // Make the enemy invulnerable by overriding its takeDamage method
+            this.protectedEnemy.takeDamage = (amount) => {
+                // Enemy is invulnerable while healer is alive
+                return;
+            };
+        }
+    }
+    
+    // Restore the protected enemy's vulnerability when the healer dies
+    restoreEnemyVulnerability() {
+        if (this.protectedEnemy && this.originalEnemyVulnerability) {
+            this.protectedEnemy.takeDamage = this.originalEnemyVulnerability;
+        }
     }
 
     update(player, currentTime) {
@@ -32,16 +67,35 @@ export class Healer extends Enemy {
         this.healPulse += 0.1;
         this.energyField += 0.05;
 
-        // Move away from player
-        const dx = this.position.x - player.position.x;
-        const dy = this.position.y - player.position.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        // Canvas boundary checking (1400x1000)
+        this.position.x = Math.max(this.size, Math.min(ROOM_CONFIG.CANVAS_WIDTH - this.size, this.position.x));
+        this.position.y = Math.max(this.size, Math.min(ROOM_CONFIG.CANVAS_HEIGHT - this.size, this.position.y));
 
-        if (distance < 400) {
-            const moveX = (dx / distance) * this.speed;
-            const moveY = (dy / distance) * this.speed;
-            this.position.x += moveX;
-            this.position.y += moveY;
+        // Move toward protected enemy instead of away from player
+        if (this.protectedEnemy) {
+            const dx = this.protectedEnemy.position.x - this.position.x;
+            const dy = this.protectedEnemy.position.y - this.position.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Stay near the protected enemy (within a certain range)
+            if (distance > 30) {
+                const moveX = (dx / distance) * this.speed * 0.5; // Move slower toward protected enemy
+                const moveY = (dy / distance) * this.speed * 0.5;
+                this.position.x += moveX;
+                this.position.y += moveY;
+            }
+        } else {
+            // Move away from player if no protected enemy
+            const dx = this.position.x - player.position.x;
+            const dy = this.position.y - player.position.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 400) {
+                const moveX = (dx / distance) * this.speed;
+                const moveY = (dy / distance) * this.speed;
+                this.position.x += moveX;
+                this.position.y += moveY;
+            }
         }
 
         // Heal nearby enemies
@@ -82,6 +136,9 @@ export class Healer extends Enemy {
         if (this.health <= 0 && !this.isDying) {
             this.isDying = true;
             this.deathAnimation = 0;
+            
+            // Restore the protected enemy's vulnerability when the healer dies
+            this.restoreEnemyVulnerability();
             
             // **ENHANCED DEATH EFFECTS**
             if (typeof game !== 'undefined' && game && game.particleSystem) {
@@ -141,6 +198,18 @@ export class Healer extends Enemy {
         }
 
         // **ENHANCED HEALER WITH SPACE DOOM EFFECTS**
+        
+        // Render protection field around protected enemy
+        if (this.protectedEnemy) {
+            const protectionAlpha = 0.4 + Math.sin(this.energyField * 2) * 0.2;
+            ctx.strokeStyle = `rgba(128, 0, 128, ${protectionAlpha})`;
+            ctx.lineWidth = 3;
+            ctx.setLineDash([5, 3]);
+            ctx.beginPath();
+            ctx.arc(this.protectedEnemy.position.x, this.protectedEnemy.position.y, this.protectionRadius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
         
         // Energy field effect
         const fieldAlpha = 0.3 + Math.sin(this.energyField) * 0.2;

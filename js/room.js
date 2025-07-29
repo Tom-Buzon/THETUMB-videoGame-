@@ -54,6 +54,8 @@ export class RoomGenerator {
                 count = Math.min(count, ROOM_CONFIG.ENEMY_COUNT.DUNGEON_5);
         }
         
+        // First, create all enemies without initializing healers
+        const enemyObjects = [];
         for (let i = 0; i < count; i++) {
             let x, y;
             do {
@@ -78,6 +80,7 @@ export class RoomGenerator {
                     enemy = new Swarmer(x, y);
                     break;
                 case 'healer':
+                    // Create healer without enemies list for now
                     enemy = new Healer(x, y);
                     break;
                 case 'sniper':
@@ -86,9 +89,23 @@ export class RoomGenerator {
             }
             
             this.scaleEnemyStats(enemy, dungeon);
-            enemies.push(enemy);
+            enemyObjects.push({
+                type: type,
+                object: enemy
+            });
         }
-        return enemies;
+        
+        // Now initialize healers with the complete enemy list
+        const allEnemies = enemyObjects.map(item => item.object);
+        enemyObjects.forEach(item => {
+            if (item.type === 'healer') {
+                // Re-initialize healer with enemies list
+                item.object.chooseProtectedEnemy(allEnemies);
+            }
+        });
+        
+        // Extract enemy objects for return
+        return allEnemies;
     }
 
     scaleEnemyStats(enemy, dungeonLevel) {
