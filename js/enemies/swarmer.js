@@ -1,27 +1,21 @@
 import { ENEMY_CONFIG } from '../config.js';
 import { Vector2D } from '../vector2d.js';
+import { Enemy } from '../enemy.js';
 
-export class Swarmer {
+export class Swarmer extends Enemy {
     constructor(x, y) {
-        this.position = new Vector2D(x, y);
-        this.velocity = new Vector2D(0, 0);
+        super(x, y); // Call parent constructor
+        // Override base properties with swarmer-specific values
         this.size = ENEMY_CONFIG.SWARMER.SIZE;
         this.health = ENEMY_CONFIG.SWARMER.HEALTH;
         this.maxHealth = ENEMY_CONFIG.SWARMER.MAX_HEALTH;
         this.speed = ENEMY_CONFIG.SWARMER.SPEED;
         this.color = ENEMY_CONFIG.SWARMER.COLOR;
         this.activated = false;
-        this.deathAnimation = 0;
-        this.isDying = false;
         this.pulsePhase = 0;
     }
 
     update(player) {
-        if (this.isDying) {
-            this.deathAnimation += 0.1;
-            return null;
-        }
-
         if (!this.activated) return null;
 
         // Update pulse effect
@@ -53,70 +47,10 @@ export class Swarmer {
         return null;
     }
 
-    takeDamage(amount) {
-        this.health = Math.max(0, this.health - amount);
-        
-        // **DAMAGE FLASH EFFECT**
-        if (this.health <= 0 && !this.isDying) {
-            this.isDying = true;
-            this.deathAnimation = 0;
-            
-            // **ENHANCED DEATH EFFECTS**
-            if (window.game && window.game.particleSystem) {
-                // Create death explosion
-                window.game.particleSystem.addExplosion(
-                    this.position.x,
-                    this.position.y,
-                    this.color,
-                    12,
-                    1
-                );
-                
-                // Add dissolve effect
-                window.game.particleSystem.addDissolveEffect(
-                    this.position.x,
-                    this.position.y,
-                    this.color,
-                    this.size
-                );
-                
-                // Add energy drain
-                window.game.particleSystem.addEnergyDrain(
-                    this.position.x,
-                    this.position.y,
-                    this.color
-                );
-                
-                // Screen shake
-                window.game.particleSystem.addScreenShake(2);
-            }
-        }
-    }
 
     render(ctx) {
-        if (this.isDying) {
-            // **DEATH DISSOLVE ANIMATION**
-            const alpha = 1 - this.deathAnimation;
-            if (alpha <= 0) return;
-            
-            ctx.globalAlpha = alpha;
-            
-            // Dissolve particles
-            for (let i = 0; i < 5; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const offset = this.deathAnimation * 20;
-                const x = this.position.x + Math.cos(angle) * offset;
-                const y = this.position.y + Math.sin(angle) * offset;
-                
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(x, y, 2, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            ctx.globalAlpha = 1;
-            return;
-        }
+        // **DEATH DISSOLVE ANIMATION**
+        // Removed individual death animation rendering logic as it's now handled by DeathAnimationSystem
 
         // **ENHANCED SWARMER WITH SPACE DOOM EFFECTS**
         

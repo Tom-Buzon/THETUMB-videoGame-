@@ -11,6 +11,8 @@ console.log('Main.js loaded - waiting for DOMContentLoaded');
 function initializeGame() {
     console.log('Creating Game instance...');
     game = new Game();
+    // Make game instance globally accessible
+    window.game = game;
     console.log('Game instance created successfully:', game);
     console.log('Starting game loop...');
     game.gameLoop();

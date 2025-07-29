@@ -1,11 +1,12 @@
 import { ENEMY_CONFIG } from '../config.js';
 import { Vector2D } from '../vector2d.js';
 import { Bullet } from '../bullet.js';
+import { Enemy } from '../enemy.js';
 
-export class Shooter {
+export class Shooter extends Enemy {
     constructor(x, y) {
-        this.position = new Vector2D(x, y);
-        this.velocity = new Vector2D(0, 0);
+        super(x, y); // Call parent constructor
+        // Override base properties with shooter-specific values
         this.size = ENEMY_CONFIG.SHOOTER.SIZE;
         this.health = ENEMY_CONFIG.SHOOTER.HEALTH;
         this.maxHealth = ENEMY_CONFIG.SHOOTER.MAX_HEALTH;
@@ -14,18 +15,11 @@ export class Shooter {
         this.activated = false;
         this.shootCooldown = 0;
         this.shootRange = ENEMY_CONFIG.SHOOTER.SHOOT_RANGE;
-        this.deathAnimation = 0.0;
-        this.isDying = false;
         this.scanlineOffset = 0;
+        // Remove the takeDamage method as it's now inherited from the base class
     }
 
     update(player) {
-        if (this.isDying) {
-            this.deathAnimation += 0.1;
-            this.scanlineOffset += 0.5;
-            return null;
-        }
-
         if (!this.activated) return null;
 
         this.scanlineOffset += 0.2;
@@ -85,79 +79,10 @@ export class Shooter {
         return null;
     }
 
-    takeDamage(amount) {
-        this.health = Math.max(0, this.health - amount);
-        
-        // **DAMAGE FLASH EFFECT**
-        if (this.health <= 0 && !this.isDying) {
-            this.isDying = true;
-            this.deathAnimation = 0.15;
-            
-            // **ENHANCED DEATH EFFECTS**
-            if (window.game && window.game.particleSystem) {
-                // Create death explosion
-                window.game.particleSystem.addExplosion(
-                    this.position.x,
-                    this.position.y,
-                    this.color,
-                    15,
-                    1
-                );
-                
-                // Add dissolve effect
-                window.game.particleSystem.addDissolveEffect(
-                    this.position.x,
-                    this.position.y,
-                    this.color,
-                    this.size
-                );
-                
-                // Add energy drain
-                window.game.particleSystem.addEnergyDrain(
-                    this.position.x,
-                    this.position.y,
-                    this.color
-                );
-                
-                // Screen shake
-                window.game.particleSystem.addScreenShake(2);
-            }
-        }
-    }
 
     render(ctx) {
-        if (this.isDying) {
-            // **GLITCH DEATH ANIMATION**
-            const alpha = 1 - this.deathAnimation;
-            if (alpha <= 0) return;
-            
-            ctx.globalAlpha = alpha;
-            
-            // Glitch effect
-            for (let i = 0; i < 5; i++) {
-                const glitchX = this.position.x + (Math.random() - 0.5) * 20;
-                const glitchY = this.position.y + (Math.random() - 0.5) * 20;
-                
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(glitchX, glitchY, this.size * 0.8, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            // Scanlines
-            ctx.strokeStyle = `rgba(0, 255, 0, ${alpha * 0.5})`;
-            ctx.lineWidth = 1;
-            for (let i = 0; i < 10; i++) {
-                const y = this.position.y - this.size + (i * this.size * 2 / 10);
-                ctx.beginPath();
-                ctx.moveTo(this.position.x - this.size, y);
-                ctx.lineTo(this.position.x + this.size, y);
-                ctx.stroke();
-            }
-            
-            ctx.globalAlpha = 1;
-            return;
-        }
+        // **GLITCH DEATH ANIMATION**
+        // Removed individual death animation rendering logic as it's now handled by DeathAnimationSystem
 
         // **ENHANCED SHOOTER WITH SPACE DOOM EFFECTS**
         

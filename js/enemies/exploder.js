@@ -1,10 +1,11 @@
 import { ENEMY_CONFIG } from '../config.js';
 import { Vector2D } from '../vector2d.js';
+import { Enemy } from '../enemy.js';
 
-export class Exploder {
+export class Exploder extends Enemy {
     constructor(x, y) {
-        this.position = new Vector2D(x, y);
-        this.velocity = new Vector2D(0, 0);
+        super(x, y); // Call parent constructor
+        // Override base properties with exploder-specific values
         this.size = ENEMY_CONFIG.EXPLODER.SIZE;
         this.health = ENEMY_CONFIG.EXPLODER.HEALTH;
         this.maxHealth = ENEMY_CONFIG.EXPLODER.MAX_HEALTH;
@@ -12,19 +13,12 @@ export class Exploder {
         this.color = ENEMY_CONFIG.EXPLODER.COLOR;
         this.activated = false;
         this.explosionRadius = ENEMY_CONFIG.EXPLODER.EXPLOSION_RADIUS;
-        this.deathAnimation = 0;
-        this.isDying = false;
         this.pulsePhase = 0;
         this.glowIntensity = 0;
         this.warningBeep = 0;
     }
 
     update(player) {
-        if (this.isDying) {
-            this.deathAnimation += 0.15;
-            return null;
-        }
-
         if (!this.activated) return null;
 
         this.pulsePhase += 0.3;
@@ -61,10 +55,11 @@ export class Exploder {
     takeDamage(amount) {
         this.health = Math.max(0, this.health - amount);
         
-        // **DAMAGE FLASH EFFECT**
-        if (this.health <= 0 && !this.isDying) {
-            this.isDying = true;
-            this.deathAnimation = 0.15;
+        // Call parent takeDamage method which handles death animation triggering
+        super.takeDamage(amount);
+        
+        // Explode when health reaches 0
+        if (this.health <= 0) {
             this.explode();
         }
     }
@@ -144,41 +139,8 @@ export class Exploder {
     }
 
     render(ctx) {
-        if (this.isDying) {
-            // **MASSIVE EXPLOSION ANIMATION**
-            const alpha = 1 - this.deathAnimation;
-            if (alpha <= 0) return;
-            
-            ctx.globalAlpha = alpha;
-            
-            // Multiple explosion rings
-            for (let i = 0; i < 5; i++) {
-                const radius = (this.explosionRadius * 0.5) + (this.deathAnimation * 80 * (i + 1));
-                const ringAlpha = alpha * (1 - this.deathAnimation * 0.3);
-                
-                ctx.strokeStyle = `rgba(255, 102, 0, ${ringAlpha})`;
-                ctx.lineWidth = 4 - i;
-                ctx.beginPath();
-                ctx.arc(this.position.x, this.position.y, radius, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-            
-            // Fire particles
-            for (let i = 0; i < 20; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const distance = this.deathAnimation * 100;
-                const x = this.position.x + Math.cos(angle) * distance;
-                const y = this.position.y + Math.sin(angle) * distance;
-                
-                ctx.fillStyle = `rgba(255, ${100 + Math.random() * 155}, 0, ${alpha * 0.8})`;
-                ctx.beginPath();
-                ctx.arc(x, y, 2 + Math.random() * 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            ctx.globalAlpha = 1;
-            return;
-        }
+        // **MASSIVE EXPLOSION ANIMATION**
+        // Removed individual death animation rendering logic as it's now handled by DeathAnimationSystem
 
         // **ENHANCED EXPLODER WITH SPACE DOOM EFFECTS**
         

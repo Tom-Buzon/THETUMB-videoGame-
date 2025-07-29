@@ -16,8 +16,6 @@ export class Healer extends Enemy {
         this.healInterval = ENEMY_CONFIG.HEALER.HEAL_COOLDOWN;
         this.lastHeal = 0;
         this.shieldRadius = 60;
-        this.deathAnimation = 0;
-        this.isDying = false;
         this.healPulse = 0;
         this.energyField = 0;
         
@@ -57,11 +55,6 @@ export class Healer extends Enemy {
     }
 
     update(player, currentTime) {
-        if (this.isDying) {
-            this.deathAnimation += 0.08;
-            return null;
-        }
-
         if (!this.activated) return null;
 
         this.healPulse += 0.1;
@@ -132,70 +125,18 @@ export class Healer extends Enemy {
     takeDamage(amount) {
         this.health = Math.max(0, this.health - amount);
         
-        // **DAMAGE FLASH EFFECT**
-        if (this.health <= 0 && !this.isDying) {
-            this.isDying = true;
-            this.deathAnimation = 0;
-            
-            // Restore the protected enemy's vulnerability when the healer dies
+        // Restore the protected enemy's vulnerability when the healer dies
+        if (this.health <= 0) {
             this.restoreEnemyVulnerability();
-            
-            // **ENHANCED DEATH EFFECTS**
-            if (typeof game !== 'undefined' && game && game.particleSystem) {
-                // Create death explosion
-                game.particleSystem.addExplosion(
-                    this.position.x,
-                    this.position.y,
-                    this.color,
-                    12,
-                    1
-                );
-                
-                // Add dissolve effect
-                game.particleSystem.addDissolveEffect(
-                    this.position.x,
-                    this.position.y,
-                    this.color,
-                    this.size
-                );
-                
-                // Add energy drain
-                game.particleSystem.addEnergyDrain(
-                    this.position.x,
-                    this.position.y,
-                    this.color
-                );
-                
-                // Screen shake
-                game.particleSystem.addScreenShake(2);
-            }
         }
+        
+        // Call parent takeDamage method which handles death animation triggering
+        super.takeDamage(amount);
     }
 
     render(ctx) {
-        if (this.isDying) {
-            // **HEALER DISSOLVE EFFECT**
-            const alpha = 1 - this.deathAnimation;
-            if (alpha <= 0) return;
-            
-            ctx.globalAlpha = alpha;
-            
-            // Healing energy dispersal
-            for (let i = 0; i < 12; i++) {
-                const angle = (Math.PI * 2 * i) / 12;
-                const distance = this.deathAnimation * 60;
-                const x = this.position.x + Math.cos(angle) * distance;
-                const y = this.position.y + Math.sin(angle) * distance;
-                
-                ctx.fillStyle = `rgba(255, 0, 255, ${alpha * 0.5})`;
-                ctx.beginPath();
-                ctx.arc(x, y, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            ctx.globalAlpha = 1;
-            return;
-        }
+        // **HEALER DISSOLVE EFFECT**
+        // Removed individual death animation rendering logic as it's now handled by DeathAnimationSystem
 
         // **ENHANCED HEALER WITH SPACE DOOM EFFECTS**
         

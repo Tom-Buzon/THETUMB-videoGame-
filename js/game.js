@@ -4,6 +4,7 @@ import { DoomUI } from './ui.js';
 import { ItemManager } from './items/ItemManager.js';
 import { RoomGenerator } from './room.js';
 import { ParticleSystem } from './particles.js';
+import { DeathAnimationSystem } from './DeathAnimationSystem.js';
 
 export class Game {
     constructor() {
@@ -49,6 +50,7 @@ export class Game {
             this.bullets = [];
             this.obstacles = [];
             this.particleSystem = new ParticleSystem();
+            this.deathAnimationSystem = new DeathAnimationSystem();
             this.gameTime = 0;
             this.nebulaOffset = 0;
             this.scanlineOffset = 0;
@@ -287,25 +289,45 @@ export class Game {
         // Update weapon state based on player health
         this.player.weapon.updateState(this.player.health, this.player.maxHealth);
         
+        // Update death animations
+        this.deathAnimationSystem.update();
+        
         // Update enemies
-        this.enemies.forEach(enemy => {
-            const bullets = enemy.update(this.player, Date.now());
-            if (bullets && Array.isArray(bullets)) {
-                this.bullets.push(...bullets);  // spread: ajoute chaque bullet individuellement
-            } else if (bullets) {
-                this.bullets.push(bullets);     // au cas où un seul bullet est retourné (autres ennemis)
+        // Filter enemies: keep alive enemies and enemies whose death animations are not complete
+        this.enemies = this.enemies.filter(enemy => {
+            // Only update enemies that are not in the process of dying
+            if (!this.deathAnimationSystem.isDying(enemy)) {
+                const bullets = enemy.update(this.player, Date.now());
+                if (bullets && Array.isArray(bullets)) {
+                    this.bullets.push(...bullets);  // spread: ajoute chaque bullet individuellement
+                } else if (bullets) {
+                    this.bullets.push(bullets);     // au cas où un seul bullet est retourné (autres ennemis)
+                }
+                
+                // Activate enemies near player
+                const distance = Math.sqrt(
+                    (enemy.position.x - this.player.position.x) ** 2 +
+                    (enemy.position.y - this.player.position.y) ** 2
+                );
+                // Activate enemies within a certain range of the player
+                const ENEMY_ACTIVATION_RANGE = 1000;
+                if (distance < ENEMY_ACTIVATION_RANGE) {
+                    enemy.activated = true;
+                }
             }
             
-            // Activate enemies near player
-            const distance = Math.sqrt(
-                (enemy.position.x - this.player.position.x) ** 2 +
-                (enemy.position.y - this.player.position.y) ** 2
-            );
-            // Activate enemies within a certain range of the player
-            const ENEMY_ACTIVATION_RANGE = 1000;
-            if (distance < ENEMY_ACTIVATION_RANGE) {
-                enemy.activated = true;
+            // Keep enemy if it's still alive or if its death animation is not complete
+            if (enemy.health <= 0) {
+                // Enemy is dead, keep it only if its death animation is not complete
+                const keepEnemy = !this.deathAnimationSystem.isAnimationComplete(enemy);
+                if (!keepEnemy) {
+                    // Clean up completed animation tracking
+                    this.deathAnimationSystem.cleanupCompletedAnimation(enemy);
+                }
+                return keepEnemy;
             }
+            // Enemy is still alive, keep it
+            return true;
         });
         
         // Update obstacles
@@ -346,31 +368,30 @@ export class Game {
                         enemy.takeDamage(bullet.damage);
                         bullet.addImpactSparks(bullet.position.x, bullet.position.y);
                         
-                        if (enemy.health <= 0 || (enemy.isDying && enemy.deathAnimation >= 1)) {
-                            this.enemies.splice(i, 1);
-                            
-                            // Add score for killing enemy
-                            if (this.ui) {
-                                // Different enemies could have different point values
-                                let points = 100;
-                                if (enemy.constructor.name === 'Boss') {
-                                    points = 1000;
-                                } else if (enemy.constructor.name === 'Exploder') {
-                                    points = 150;
-                                } else if (enemy.constructor.name === 'Shooter') {
-                                    points = 120;
-                                } else if (enemy.constructor.name === 'Charger') {
-                                    points = 80;
-                                } else if (enemy.constructor.name === 'Swarmer') {
-                                    points = 50;
-                                } else if (enemy.constructor.name === 'Healer') {
-                                    points = 200;
-                                } else if (enemy.constructor.name === 'Sniper') {
-                                    points = 180;
-                                }
-                                this.ui.addScore(points);
+                        // Add score for killing enemy when health reaches zero
+                        if (enemy.health <= 0 && this.ui) {
+                            // Different enemies could have different point values
+                            let points = 100;
+                            if (enemy.constructor.name === 'Boss') {
+                                points = 1000;
+                            } else if (enemy.constructor.name === 'Exploder') {
+                                points = 150;
+                            } else if (enemy.constructor.name === 'Shooter') {
+                                points = 120;
+                            } else if (enemy.constructor.name === 'Charger') {
+                                points = 80;
+                            } else if (enemy.constructor.name === 'Swarmer') {
+                                points = 50;
+                            } else if (enemy.constructor.name === 'Healer') {
+                                points = 200;
+                            } else if (enemy.constructor.name === 'Sniper') {
+                                points = 180;
                             }
+                            this.ui.addScore(points);
                         }
+                        
+                        // Don't remove enemy immediately - let the enemy filtering logic handle it
+                        // after the death animation completes
                         return false;
                     }
                 }
@@ -457,7 +478,15 @@ export class Game {
         
         // Render game objects
         this.obstacles.forEach(obstacle => obstacle.render(this.ctx));
-        this.enemies.forEach(enemy => enemy.render(this.ctx));
+        this.enemies.forEach(enemy => {
+            if (this.deathAnimationSystem.isDying(enemy)) {
+                // Render death animation
+                this.deathAnimationSystem.renderDeathAnimation(enemy, this.ctx);
+            } else {
+                // Render normal enemy
+                enemy.render(this.ctx);
+            }
+        });
         this.bullets.forEach(bullet => bullet.render(this.ctx));
         this.player.render(this.ctx);
         this.particleSystem.render(this.ctx);

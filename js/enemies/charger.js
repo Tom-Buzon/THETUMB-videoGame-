@@ -1,10 +1,11 @@
 import { ENEMY_CONFIG } from '../config.js';
 import { Vector2D } from '../vector2d.js';
+import { Enemy } from '../enemy.js';
 
-export class Charger {
+export class Charger extends Enemy {
     constructor(x, y) {
-        this.position = new Vector2D(x, y);
-        this.velocity = new Vector2D(0, 0);
+        super(x, y); // Call parent constructor
+        // Override base properties with charger-specific values
         this.size = ENEMY_CONFIG.CHARGER.SIZE;
         this.health = ENEMY_CONFIG.CHARGER.HEALTH;
         this.maxHealth = ENEMY_CONFIG.CHARGER.MAX_HEALTH;
@@ -17,17 +18,10 @@ export class Charger {
         this.chargeDirection = new Vector2D(0, 0);
         this.chargeDuration = 0;
         this.maxChargeDuration = ENEMY_CONFIG.CHARGER.MAX_CHARGE_DURATION;
-        this.deathAnimation = 0;
-        this.isDying = false;
         this.chargeGlow = 0;
     }
 
     update(player) {
-        if (this.isDying) {
-            this.deathAnimation += 0.08;
-            return null;
-        }
-
         if (!this.activated) return null;
 
         const distanceToPlayer = Math.sqrt(
@@ -94,82 +88,10 @@ export class Charger {
         return null;
     }
 
-    takeDamage(amount) {
-        this.health = Math.max(0, this.health - amount);
-        
-        // **DAMAGE FLASH EFFECT**
-        if (this.health <= 0 && !this.isDying) {
-            this.isDying = true;
-            this.deathAnimation = 0;
-            
-            // **ENHANCED DEATH EFFECTS**
-            if (window.game && window.game.particleSystem) {
-                // Create large explosion for charger
-                window.game.particleSystem.addExplosion(
-                    this.position.x,
-                    this.position.y,
-                    this.color,
-                    20,
-                    1.5
-                );
-                
-                // Add dissolve effect
-                window.game.particleSystem.addDissolveEffect(
-                    this.position.x,
-                    this.position.y,
-                    this.color,
-                    this.size
-                );
-                
-                // Add energy drain
-                window.game.particleSystem.addEnergyDrain(
-                    this.position.x,
-                    this.position.y,
-                    this.color
-                );
-                
-                // Screen shake
-                window.game.particleSystem.addScreenShake(4);
-            }
-        }
-    }
 
     render(ctx) {
-        if (this.isDying) {
-            // **DEATH EXPLOSION ANIMATION**
-            const alpha = 1 - this.deathAnimation;
-            if (alpha <= 0) return;
-            
-            ctx.globalAlpha = alpha;
-            
-            // Explosion rings
-            for (let i = 0; i < 3; i++) {
-                const radius = this.size + (this.deathAnimation * 50 * (i + 1));
-                const ringAlpha = alpha * (1 - this.deathAnimation * 0.5);
-                
-                ctx.strokeStyle = `rgba(255, 68, 68, ${ringAlpha})`;
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(this.position.x, this.position.y, radius, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-            
-            // Debris
-            for (let i = 0; i < 8; i++) {
-                const angle = (Math.PI * 2 * i) / 8;
-                const distance = this.deathAnimation * 30;
-                const x = this.position.x + Math.cos(angle) * distance;
-                const y = this.position.y + Math.sin(angle) * distance;
-                
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(x, y, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            ctx.globalAlpha = 1;
-            return;
-        }
+        // **DEATH EXPLOSION ANIMATION**
+        // Removed individual death animation rendering logic as it's now handled by DeathAnimationSystem
 
         // **ENHANCED CHARGER WITH SPACE DOOM EFFECTS**
         

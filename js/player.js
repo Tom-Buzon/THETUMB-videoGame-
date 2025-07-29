@@ -333,7 +333,7 @@ export class Player {
         
         // **DEATH CHECK - Always check if player should die**
         if (this.health <= 0 && window.game) {
-            window.game.handlePlayerDeath();
+            window.game.gameOver();
         }
     }
     

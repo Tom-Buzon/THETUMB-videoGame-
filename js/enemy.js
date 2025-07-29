@@ -13,10 +13,54 @@ export class Enemy {
         this.activated = false;
         this.spawnTime = Date.now();
         this.lastShot = 0;
+        this.isDying = false;
+        this.deathAnimationSpeed = 0.08; // Standardized speed
     }
 
     takeDamage(amount) {
         this.health = Math.max(0, this.health - amount);
+        
+        if (this.health <= 0 && !this.isDying) {
+            this.isDying = true;
+            // Trigger death animation through the system
+            if (typeof window !== 'undefined' && window.game && window.game.deathAnimationSystem) {
+                window.game.deathAnimationSystem.startAnimation(this, this.constructor.name);
+            }
+            
+            // Trigger particle effects
+            this.triggerDeathEffects();
+        }
+    }
+    
+    triggerDeathEffects() {
+        // Base implementation - can be overridden by specific enemy types
+        if (typeof window !== 'undefined' && window.game && window.game.particleSystem) {
+            window.game.particleSystem.addExplosion(
+                this.position.x,
+                this.position.y,
+                this.color,
+                10,
+                1
+            );
+            
+            // Add dissolve effect
+            window.game.particleSystem.addDissolveEffect(
+                this.position.x,
+                this.position.y,
+                this.color,
+                this.size
+            );
+            
+            // Add energy drain
+            window.game.particleSystem.addEnergyDrain(
+                this.position.x,
+                this.position.y,
+                this.color
+            );
+            
+            // Screen shake
+            window.game.particleSystem.addScreenShake(2);
+        }
     }
 
     render(ctx) {

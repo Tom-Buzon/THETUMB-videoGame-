@@ -2,10 +2,12 @@ import { ENEMY_CONFIG } from '../config.js';
 import { Vector2D } from '../vector2d.js';
 import { Bullet } from '../bullet.js';
 
-export class Sniper {
+import { Enemy } from '../enemy.js';
+
+export class Sniper extends Enemy {
     constructor(x, y) {
-        this.position = new Vector2D(x, y);
-        this.velocity = new Vector2D(0, 0);
+        super(x, y); // Call parent constructor
+        // Override base properties with sniper-specific values
         this.size = ENEMY_CONFIG.SNIPER.SIZE;
         this.health = ENEMY_CONFIG.SNIPER.HEALTH;
         this.maxHealth = ENEMY_CONFIG.SNIPER.MAX_HEALTH;
@@ -15,18 +17,12 @@ export class Sniper {
         this.shootCooldown = 0;
         this.shootRange = ENEMY_CONFIG.SNIPER.SHOOT_RANGE;
         this.retreatDistance = 800;
-        this.deathAnimation = 0;
-        this.isDying = false;
         this.scopeGlow = 0;
         this.laserIntensity = 0;
+        // Remove the takeDamage method as it's now inherited from the base class
     }
 
     update(player) {
-        if (this.isDying) {
-            this.deathAnimation += 0.05;
-            return null;
-        }
-
         if (!this.activated) return null;
 
         const distanceToPlayer = Math.sqrt(
@@ -90,80 +86,10 @@ export class Sniper {
         return null;
     }
 
-    takeDamage(amount) {
-        this.health = Math.max(0, this.health - amount);
-        
-        // **DAMAGE FLASH EFFECT**
-        if (this.health <= 0 && !this.isDying) {
-            this.isDying = true;
-            this.deathAnimation = 0;
-            
-            // **ENHANCED DEATH EFFECTS**
-            if (window.game && window.game.particleSystem) {
-                // Create death explosion
-                window.game.particleSystem.addExplosion(
-                    this.position.x,
-                    this.position.y,
-                    this.color,
-                    18,
-                    1.2
-                );
-                
-                // Add dissolve effect
-                window.game.particleSystem.addDissolveEffect(
-                    this.position.x,
-                    this.position.y,
-                    this.color,
-                    this.size
-                );
-                
-                // Add energy drain
-                window.game.particleSystem.addEnergyDrain(
-                    this.position.x,
-                    this.position.y,
-                    this.color
-                );
-                
-                // Screen shake
-                window.game.particleSystem.addScreenShake(3);
-            }
-        }
-    }
 
     render(ctx) {
-        if (this.isDying) {
-            // **SNIPER SCOPE SHATTER EFFECT**
-            const alpha = 1 - this.deathAnimation;
-            if (alpha <= 0) return;
-            
-            ctx.globalAlpha = alpha;
-            
-            // Shattered scope pieces
-            for (let i = 0; i < 6; i++) {
-                const angle = (Math.PI * 2 * i) / 6;
-                const distance = this.deathAnimation * 40;
-                const x = this.position.x + Math.cos(angle) * distance;
-                const y = this.position.y + Math.sin(angle) * distance;
-                
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(x, y, 4, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Glass shard effect
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(x - 3, y - 3);
-                ctx.lineTo(x + 3, y + 3);
-                ctx.moveTo(x + 3, y - 3);
-                ctx.lineTo(x - 3, y + 3);
-                ctx.stroke();
-            }
-            
-            ctx.globalAlpha = 1;
-            return;
-        }
+        // **SNIPER SCOPE SHATTER EFFECT**
+        // Removed individual death animation rendering logic as it's now handled by DeathAnimationSystem
 
         // **ENHANCED SNIPER WITH SPACE DOOM EFFECTS**
         

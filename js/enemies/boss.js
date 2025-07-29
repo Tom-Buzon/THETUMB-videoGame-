@@ -5,10 +5,12 @@ import { Swarmer } from './swarmer.js';
 import { Shooter } from './shooter.js';
 import { Exploder } from './exploder.js';
 
-export class Boss {
+import { Enemy } from '../enemy.js';
+
+export class Boss extends Enemy {
     constructor(x, y) {
-        this.position = new Vector2D(x, y);
-        this.velocity = new Vector2D(0, 0);
+        super(x, y); // Call parent constructor
+        // Override base properties with boss-specific values
         this.size = ENEMY_CONFIG.BOSS.SIZE;
         this.health = ENEMY_CONFIG.BOSS.HEALTH;
         this.maxHealth = ENEMY_CONFIG.BOSS.MAX_HEALTH;
@@ -41,6 +43,9 @@ export class Boss {
         // **SHIELD**
         this.shieldActive = false;
         this.shieldCooldown = 0;
+        
+        // **DEATH ANIMATION**
+        // Removed individual death animation properties as they're now handled by DeathAnimationSystem
     }
 
     update(player) {
@@ -64,6 +69,9 @@ export class Boss {
         
         // **TÉLÉPORTATION**
         this.updateTeleport(player);
+        
+        // **DEATH ANIMATION UPDATE**
+        // Removed individual death animation update logic as it's now handled by DeathAnimationSystem
         
         return bullets;
     }
@@ -366,10 +374,14 @@ export class Boss {
             amount = Math.floor(amount * ENEMY_CONFIG.BOSS.SHIELD_DAMAGE_REDUCTION); // Réduction de dégâts avec shield
         }
         
-        this.health = Math.max(0, this.health - amount);
+        // Call parent takeDamage method which handles death animation triggering
+        super.takeDamage(amount);
     }
 
     render(ctx) {
+        // **DEATH ANIMATION RENDERING**
+        // Removed individual death animation rendering logic as it's now handled by DeathAnimationSystem
+        
         // **RENDU DE L'AURA**
         this.auraParticles.forEach(particle => {
             const alpha = particle.life / particle.maxLife;
