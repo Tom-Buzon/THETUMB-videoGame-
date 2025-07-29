@@ -11,10 +11,82 @@ export class CompanionItem {
 
     update() {}
     draw(ctx) {
+        // Draw robot body (circle)
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.arc(this.x, this.y, this.radius * 0.7, 0, 2 * Math.PI);
         ctx.fillStyle = this.color;
         ctx.fill();
+        
+        // Draw robot head (rectangle)
+        const headWidth = this.radius * 0.8;
+        const headHeight = this.radius * 0.6;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(
+            this.x - headWidth / 2,
+            this.y - this.radius * 1.1,
+            headWidth,
+            headHeight
+        );
+        
+        // Draw eyes (small circles)
+        ctx.beginPath();
+        ctx.arc(
+            this.x - headWidth * 0.25,
+            this.y - this.radius * 0.9,
+            this.radius * 0.1,
+            0,
+            2 * Math.PI
+        );
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.arc(
+            this.x + headWidth * 0.25,
+            this.y - this.radius * 0.9,
+            this.radius * 0.1,
+            0,
+            2 * Math.PI
+        );
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        
+        // Draw antenna (line and circle)
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y - this.radius * 1.1);
+        ctx.lineTo(this.x, this.y - this.radius * 1.4);
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = this.radius * 0.15;
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(
+            this.x,
+            this.y - this.radius * 1.5,
+            this.radius * 0.15,
+            0,
+            2 * Math.PI
+        );
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        
+        // Draw arms (rectangles)
+        const armWidth = this.radius * 0.2;
+        const armHeight = this.radius * 0.5;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(
+            this.x - this.radius * 0.9,
+            this.y - this.radius * 0.2,
+            armWidth,
+            armHeight
+        );
+        
+        ctx.fillRect(
+            this.x + this.radius * 0.7,
+            this.y - this.radius * 0.2,
+            armWidth,
+            armHeight
+        );
     }
 
     activate() {

@@ -11,9 +11,35 @@ export class TimeBubbleItem {
 
     update() {}
     draw(ctx) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        // Draw clock symbol
+        ctx.strokeStyle = this.color;
         ctx.fillStyle = this.color;
+        ctx.lineWidth = 2;
+        
+        // Draw clock circle
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius * 0.8, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Draw clock hands
+        const hourHandLength = this.radius * 0.4;
+        const minuteHandLength = this.radius * 0.6;
+        
+        // Hour hand (shorter, pointing to 3 o'clock position)
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x + hourHandLength, this.y);
+        ctx.stroke();
+        
+        // Minute hand (longer, pointing to 12 o'clock position)
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x, this.y - minuteHandLength);
+        ctx.stroke();
+        
+        // Draw center dot
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
         ctx.fill();
     }
 

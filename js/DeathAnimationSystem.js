@@ -1,4 +1,7 @@
+import { BlackHoleItem } from './items/BlackHole.js';
+import { CompanionItem } from './items/Companion.js';
 import { ParticleSystem } from './particles.js';
+import { Vector2D } from './vector2d.js';
 
 export class DeathAnimationSystem {
     constructor() {

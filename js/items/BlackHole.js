@@ -33,10 +33,39 @@ export class BlackHoleItem {
             const pulse = Math.sin(Date.now() * 0.01) * 5;
             const radius = this.radius + pulse;
             
+            // Draw accretion disk (outer ring)
             ctx.beginPath();
             ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
-            ctx.fillStyle = this.color;
+            ctx.fillStyle = 'rgba(102, 102, 204, 0.7)'; // Lighter blue for accretion disk
             ctx.fill();
+            
+            // Draw black hole event horizon (darker center)
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, radius * 0.6, 0, Math.PI * 2);
+            ctx.fillStyle = this.color; // Dark blue center
+            ctx.fill();
+            
+            // Draw spiral effect
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(200, 200, 255, 0.8)'; // Light blue for spiral
+            ctx.lineWidth = 1;
+            const spiralRadius = radius * 0.8;
+            let prevX = this.x;
+            let prevY = this.y;
+            
+            for (let i = 0; i < 3; i += 0.2) {
+                const angle = i * Math.PI;
+                const distance = (i / 3) * spiralRadius;
+                const x = this.x + Math.cos(angle) * distance;
+                const y = this.y + Math.sin(angle) * distance;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
             
             // Draw attraction effect
             ctx.beginPath();
@@ -45,9 +74,17 @@ export class BlackHoleItem {
             ctx.lineWidth = 2;
             ctx.stroke();
         } else {
+            // Draw simplified black hole when not active
+            // Draw outer ring (accretion disk)
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            ctx.fillStyle = this.color;
+            ctx.fillStyle = 'rgba(102, 102, 204, 0.5)'; // Semi-transparent lighter blue
+            ctx.fill();
+            
+            // Draw center
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius * 0.6, 0, Math.PI * 2);
+            ctx.fillStyle = this.color; // Dark blue center
             ctx.fill();
         }
     }

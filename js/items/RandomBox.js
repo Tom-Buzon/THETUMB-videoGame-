@@ -11,10 +11,12 @@ export class RandomBoxItem {
 
     update() {}
     draw(ctx) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        // Draw question mark
         ctx.fillStyle = this.color;
-        ctx.fill();
+        ctx.font = `${this.radius * 1.2}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('?', this.x, this.y);
     }
 
     activate() {

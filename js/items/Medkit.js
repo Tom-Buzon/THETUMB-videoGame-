@@ -11,10 +11,35 @@ export class MedkitItem {
 
     update() {}
     draw(ctx) {
+        // Draw green background circle
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-        ctx.fillStyle = this.color;
+        ctx.fillStyle = this.color; // Green background
         ctx.fill();
+        
+        // Draw white cross
+        ctx.fillStyle = 'white';
+        
+        // Cross dimensions
+        const crossWidth = this.radius * 0.4;
+        const crossHeight = this.radius * 0.8;
+        const crossThickness = this.radius * 0.25;
+        
+        // Draw vertical bar of cross
+        ctx.fillRect(
+            this.x - crossThickness / 2,
+            this.y - crossHeight / 2,
+            crossThickness,
+            crossHeight
+        );
+        
+        // Draw horizontal bar of cross
+        ctx.fillRect(
+            this.x - crossWidth / 2,
+            this.y - crossThickness / 2,
+            crossWidth,
+            crossThickness
+        );
     }
 
     activate() {

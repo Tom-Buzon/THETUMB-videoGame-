@@ -10,11 +10,49 @@ export class GhostItem {
     }
 
     update() {}
+    
     draw(ctx) {
+        // Draw ghost body with wavy bottom edge
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
         ctx.fillStyle = this.color;
+        
+        // Start from the top center
+        ctx.moveTo(this.x, this.y - this.radius * 0.8);
+        
+        // Draw the top arc
+        ctx.arc(this.x, this.y - this.radius * 0.2, this.radius * 0.8, Math.PI, 0, false);
+        
+        // Draw wavy bottom edge with 3 waves
+        const waveCount = 3;
+        const waveHeight = this.radius * 0.2;
+        const waveWidth = (this.radius * 1.6) / waveCount;
+        
+        for (let i = 0; i < waveCount; i++) {
+            const waveX = this.x - this.radius * 0.8 + (i * 2 + 1) * waveWidth / 2;
+            const waveY = this.y + this.radius * 0.6;
+            ctx.lineTo(waveX - waveWidth / 2, waveY);
+            ctx.quadraticCurveTo(waveX, waveY + waveHeight, waveX + waveWidth / 2, waveY);
+        }
+        
+        // Close the path back to the starting point
+        ctx.lineTo(this.x, this.y - this.radius * 0.8);
         ctx.fill();
+        
+        // Draw eyes
+        ctx.beginPath();
+        ctx.fillStyle = 'white';
+        // Left eye
+        ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.1, this.radius * 0.15, 0, 2 * Math.PI);
+        // Right eye
+        ctx.arc(this.x + this.radius * 0.3, this.y - this.radius * 0.1, this.radius * 0.15, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Draw mouth
+        ctx.beginPath();
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.arc(this.x, this.y + this.radius * 0.2, this.radius * 0.2, 0, Math.PI, false);
+        ctx.stroke();
     }
 
     activate() {

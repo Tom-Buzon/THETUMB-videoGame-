@@ -11,9 +11,60 @@ export class GodPlanItem {
 
     update() {}
     draw(ctx) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        // Draw arrows pointing outward
+        ctx.strokeStyle = this.color;
         ctx.fillStyle = this.color;
+        ctx.lineWidth = 2;
+        
+        // Arrow length and head size
+        const arrowLength = this.radius * 0.7;
+        const headLength = this.radius * 0.3;
+        const headWidth = this.radius * 0.2;
+        
+        // Draw four arrows (up, down, left, right)
+        // Up arrow
+        this.drawArrow(ctx, this.x, this.y, 0, -arrowLength, headLength, headWidth);
+        
+        // Down arrow
+        this.drawArrow(ctx, this.x, this.y, 0, arrowLength, headLength, headWidth);
+        
+        // Left arrow
+        this.drawArrow(ctx, this.x, this.y, -arrowLength, 0, headLength, headWidth);
+        
+        // Right arrow
+        this.drawArrow(ctx, this.x, this.y, arrowLength, 0, headLength, headWidth);
+        
+        // Draw center circle
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Helper function to draw an arrow
+    drawArrow(ctx, fromX, fromY, dx, dy, headLength, headWidth) {
+        const toX = fromX + dx;
+        const toY = fromY + dy;
+        
+        // Draw arrow shaft
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.stroke();
+        
+        // Draw arrowhead
+        const angle = Math.atan2(dy, dx);
+        
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(
+            toX - headLength * Math.cos(angle - Math.PI / 6),
+            toY - headLength * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+            toX - headLength * Math.cos(angle + Math.PI / 6),
+            toY - headLength * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.closePath();
         ctx.fill();
     }
 

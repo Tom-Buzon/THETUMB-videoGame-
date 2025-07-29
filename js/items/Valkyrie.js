@@ -15,9 +15,36 @@ export class ValkyrieItem {
     }
 
     draw(ctx) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        // Draw nuclear bomb symbol
         ctx.fillStyle = this.color;
+        
+        // Draw bomb body (ellipse)
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y, this.radius * 0.8, this.radius * 0.6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw radiation symbol (three curved lines)
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        
+        // Draw three curved lines representing radiation
+        for (let i = 0; i < 3; i++) {
+            const angle = (i * Math.PI * 2) / 3;
+            ctx.beginPath();
+            ctx.arc(
+                this.x + Math.cos(angle) * this.radius * 0.3,
+                this.y + Math.sin(angle) * this.radius * 0.3,
+                this.radius * 0.4,
+                angle + Math.PI * 0.7,
+                angle + Math.PI * 1.3
+            );
+            ctx.stroke();
+        }
+        
+        // Draw center circle
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius * 0.2, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
         ctx.fill();
     }
 

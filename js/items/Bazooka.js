@@ -11,9 +11,48 @@ export class BazookaItem {
 
     update() {}
     draw(ctx) {
+        // Draw upward arrow
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
         ctx.fillStyle = this.color;
+        
+        // Arrow shaft (vertical line)
+        const arrowWidth = this.radius * 0.3;
+        const arrowHeight = this.radius * 0.6;
+        const arrowHeadHeight = this.radius * 0.4;
+        const arrowHeadWidth = this.radius * 0.5;
+        
+        // Upward arrow
+        // Draw arrow shaft
+        ctx.fillRect(
+            this.x - arrowWidth/2,
+            this.y - arrowHeight/2,
+            arrowWidth,
+            arrowHeight
+        );
+        
+        // Draw arrow head
+        ctx.beginPath();
+        ctx.moveTo(this.x - arrowHeadWidth, this.y - arrowHeight/2);
+        ctx.lineTo(this.x, this.y - arrowHeight/2 - arrowHeadHeight);
+        ctx.lineTo(this.x + arrowHeadWidth, this.y - arrowHeight/2);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Downward arrow
+        // Draw arrow shaft
+        ctx.fillRect(
+            this.x - arrowWidth/2,
+            this.y + arrowHeight/2 - arrowHeight,
+            arrowWidth,
+            arrowHeight
+        );
+        
+        // Draw arrow head
+        ctx.beginPath();
+        ctx.moveTo(this.x - arrowHeadWidth, this.y + arrowHeight/2);
+        ctx.lineTo(this.x, this.y + arrowHeight/2 + arrowHeadHeight);
+        ctx.lineTo(this.x + arrowHeadWidth, this.y + arrowHeight/2);
+        ctx.closePath();
         ctx.fill();
     }
 

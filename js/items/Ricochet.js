@@ -11,10 +11,12 @@ export class RicochetItem {
 
     update() {}
     draw(ctx) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        // Draw bouncing symbol >|
         ctx.fillStyle = this.color;
-        ctx.fill();
+        ctx.font = `${this.radius * 1.2}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('>|', this.x, this.y);
     }
 
     activate() {
