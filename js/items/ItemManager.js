@@ -109,10 +109,34 @@ export class ItemManager {
                     window.audio.playSound("itemPickup");
                 }
                 
-                // Remove item from array (don't filter it out)
+                // For BlackHoleItem, don't remove it immediately as it needs to continue its effect
+                if (item.constructor.name === 'BlackHoleItem') {
+                    // Keep the item in the array for BlackHoleItem
+                    return true;
+                }
+                
+                // For ValkyrieItem, don't remove it immediately as it needs to continue its effect
+                if (item.constructor.name === 'ValkyrieItem') {
+                    // Keep the item in the array for ValkyrieItem
+                    return true;
+                }
+                
+                // Remove item from array for other items
                 return false;
             }
             // Keep item in array
+            return true;
+        });
+        
+        // Remove BlackHoleItem from array when its effect is complete
+        this.items = this.items.filter(item => {
+            if (item.constructor.name === 'BlackHoleItem' && item.effectComplete) {
+                return false;
+            }
+            // Remove ValkyrieItem from array when its effect is complete
+            if (item.constructor.name === 'ValkyrieItem' && item.effectComplete) {
+                return false;
+            }
             return true;
         });
     }

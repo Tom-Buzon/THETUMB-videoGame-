@@ -48,10 +48,11 @@ const PLAYER_CONFIG = {
       COOLDOWN: 20000 // 20 seconds
     },
     BLACK_HOLE: {
-      DURATION: 10000, // 10 seconds
+      DURATION: 3500, // 3.5 seconds for growing disk
       COOLDOWN: 30000, // 30 seconds
-      EFFECT_DURATION: 3000, // 3 seconds
-      ATTRACTION_RANGE: 300
+      EFFECT_DURATION: 2000, // 2 seconds for attraction and damage
+      ATTRACTION_RANGE: 300,
+      BLINK_DURATION: 1500 // 1.5 seconds for blinking
     },
     COMPANION_ITEM: {
       COOLDOWN: 30000 // 30 seconds
@@ -71,7 +72,7 @@ const PLAYER_CONFIG = {
     RICOCHET: 45000, // 45 seconds
     VALKYRIE: 30000, // 30 seconds
     TIME_BUBBLE: 20000, // 20 seconds
-    BLACK_HOLE: 30000, // 30 seconds
+    BLACK_HOLE: 15000, // 15 seconds
     COMPANION: 30000, // 30 seconds
     GOD_PLAN: 60000, // 60 seconds
     RANDOM_BOX: 15000 // 15 seconds
@@ -296,9 +297,11 @@ const ITEM_CONFIG = {
   },
   BLACK_HOLE: {
     COLOR: "#333399",
-    DURATION: 3000, // 3 seconds
+    DURATION: 3000, // 3 seconds for growing disk
     COOLDOWN: 30000, // 30 seconds
-    ATTRACTION_RANGE: 300
+    ATTRACTION_RANGE: 300,
+    BLINK_DURATION: 500, // 1 second for blinking
+    EFFECT_DURATION: 500 // 1 second for attraction and damage
   },
   VALKYRIE: {
     COLOR: "#ffcc00",
@@ -348,10 +351,15 @@ const ROOM_CONFIG = {
   BASE_ITEM_COUNT: 1,
   
   ITEM_RARITY: {
-    COMMON: ['Medkit', 'Valkyrie'],
-    UNCOMMON: ['Shield', 'Ghost', 'Companion'],
-    RARE: ['Bazooka', 'Ricochet', 'TimeBubble'],
-    EPIC: ['BlackHole', 'GodPlan', 'RandomBox']
+    COMMON: ['Valkyrie'],
+    UNCOMMON: ['Valkyrie'],
+    RARE: ['Valkyrie'],
+    EPIC: ['Valkyrie']
+    
+    //COMMON: ['Medkit', 'Ricochet','BlackHole'],
+    //UNCOMMON: ['Shield', 'Ghost', 'Companion'],
+    //RARE: ['Bazooka', 'Valkyrie', 'TimeBubble'],
+    //EPIC: ['GodPlan', 'RandomBox']
   }
 };
 
