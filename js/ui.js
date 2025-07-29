@@ -1,4 +1,6 @@
-class DoomUI {
+import { UI_CONFIG } from './config.js';
+
+export class DoomUI {
     constructor(canvas, ctx) {
         this.canvas = canvas;
         this.ctx = ctx;
@@ -8,19 +10,10 @@ class DoomUI {
         this.score = 0;
         this.combo = 0;
         this.comboTimer = 0;
-        this.maxComboTime = 2000;
+        this.maxComboTime = UI_CONFIG.COMBO.MAX_TIME;
         this.lastKillTime = 0;
         
-        this.colors = {
-            red: '#FF0000',
-            orange: '#FF6600',
-            yellow: '#FFFF00',
-            green: '#00FF00',
-            cyan: '#00FFFF',
-            white: '#FFFFFF',
-            darkRed: '#8B0000',
-            darkGray: '#333333'
-        };
+        this.colors = UI_CONFIG.COLORS;
     }
 
     setGame(game) {
@@ -145,112 +138,50 @@ class DoomUI {
     }
 
     draw() {
-        this.drawHUD();
+        this.updateHUD();
         this.drawMessages();
         this.drawCombo();
     }
 
-    drawHUD() {
-        const ctx = this.ctx;
-        
-        // Background HUD bar
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, this.canvas.width, 60);
-        
-        // Health bar
+    updateHUD() {
+        // Update health bar
         const healthPercent = this.game && this.game.player ? this.game.player.health / this.game.player.maxHealth : 1;
-        const healthBarWidth = 200;
-        const healthBarHeight = 20;
-        const healthBarX = 20;
-        const healthBarY = 20;
+        const healthFill = document.getElementById('health-fill');
+        const healthText = document.getElementById('health-text');
         
-        ctx.fillStyle = this.colors.darkRed;
-        ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
-        
-        const healthColor = healthPercent > 0.6 ? this.colors.green :
-                           healthPercent > 0.3 ? this.colors.orange : this.colors.red;
-        ctx.fillStyle = healthColor;
-        ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercent, healthBarHeight);
-        
-        ctx.fillStyle = this.colors.white;
-        ctx.font = 'bold 20px Courier New';
-        if (this.game && this.game.player) {
-            ctx.fillText(`HEALTH: ${Math.ceil(this.game.player.health)}/${this.game.player.maxHealth}`, healthBarX, healthBarY - 5);
+        if (healthFill) {
+            healthFill.style.width = `${healthPercent * 100}%`;
         }
         
-        // Score
-        ctx.fillStyle = this.colors.cyan;
-        ctx.font = 'bold 24px Courier New';
-        ctx.fillText(`SCORE: ${Math.floor(this.score)}`, this.canvas.width / 2 - 50, 35);
-        
-        // Timer
-        const minutes = Math.floor(this.timer / 60000);
-        const seconds = Math.floor((this.timer % 60000) / 1000);
-        ctx.fillStyle = this.colors.yellow;
-        ctx.font = 'bold 20px Courier New';
-        ctx.fillText(`TIME: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`, this.canvas.width - 150, 35);
-        
-        // Dungeon info
-        ctx.fillStyle = this.colors.orange;
-        ctx.font = 'bold 18px Courier New';
-        if (this.game) {
-            ctx.fillText(`DUNGEON ${this.game.currentDungeon} - ROOM ${this.game.currentRoom}/3`, this.canvas.width / 2 - 100, 60);
+        if (healthText && this.game && this.game.player) {
+            healthText.textContent = `HEALTH: ${Math.ceil(this.game.player.health)}/${this.game.player.maxHealth}`;
         }
         
-        // Display active item effects
-        if (this.game && this.game.player) {
-            const player = this.game.player;
-            let effectY = 80;
-            
-            // Display active effects with progress bars
-            player.activeEffects.forEach(effectName => {
-                const effect = player.itemEffects[effectName];
-                if (effect && effect.active) {
-                    // Calculate remaining time
-                    const remainingTime = Math.max(0, (effect.maxDuration - effect.duration) / 1000);
-                    const progress = 1 - (effect.duration / effect.maxDuration);
-                    
-                    // Display effect name and time
-                    ctx.fillStyle = this.colors.cyan;
-                    ctx.font = 'bold 14px Courier New';
-                    ctx.fillText(`${effectName.toUpperCase()}: ${remainingTime.toFixed(1)}s`, 20, effectY);
-                    
-                    // Draw progress bar
-                    const barWidth = 150;
-                    const barHeight = 8;
-                    const barX = 20;
-                    const barY = effectY + 5;
-                    
-                    // Background
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                    ctx.fillRect(barX, barY, barWidth, barHeight);
-                    
-                    // Progress
-                    ctx.fillStyle = this.colors.cyan;
-                    ctx.fillRect(barX, barY, barWidth * progress, barHeight);
-                    
-                    effectY += 25;
-                }
-            });
-            
-            // Display item cooldowns
-            let cooldownY = effectY;
-            for (const [itemName, cooldown] of Object.entries(player.itemCooldowns)) {
-                if (cooldown > 0) {
-                    const remainingTime = (cooldown / 1000).toFixed(1);
-                    ctx.fillStyle = this.colors.orange;
-                    ctx.font = 'bold 14px Courier New';
-                    ctx.fillText(`${itemName.toUpperCase()} COOLDOWN: ${remainingTime}s`, 20, cooldownY);
-                    cooldownY += 20;
-                }
-            }
-            
-            // Display weapon info
-            if (player.weaponMode !== 'NORMAL') {
-                ctx.fillStyle = this.colors.yellow;
-                ctx.font = 'bold 16px Courier New';
-                ctx.fillText(`WEAPON: ${player.weaponMode}`, this.canvas.width - 200, 60);
-            }
+        // Update weapon info
+        const weaponInfo = document.getElementById('weapon-info');
+        if (weaponInfo && this.game && this.game.player) {
+            const weaponName = this.game.player.weapon.getName();
+            weaponInfo.textContent = `WEAPON: ${weaponName}`;
+        }
+        
+        // Update dungeon info
+        const dungeonInfo = document.getElementById('dungeon-info');
+        if (dungeonInfo && this.game) {
+            dungeonInfo.textContent = `DUNGEON ${this.game.currentDungeon} - ROOM ${this.game.currentRoom}/3`;
+        }
+        
+        // Update score
+        const scoreDisplay = document.getElementById('score-display');
+        if (scoreDisplay) {
+            scoreDisplay.textContent = `SCORE: ${Math.floor(this.score)}`;
+        }
+        
+        // Update timer
+        const timerDisplay = document.getElementById('timer-display');
+        if (timerDisplay) {
+            const minutes = Math.floor(this.timer / 60000);
+            const seconds = Math.floor((this.timer % 60000) / 1000);
+            timerDisplay.textContent = `TIME: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
     }
 

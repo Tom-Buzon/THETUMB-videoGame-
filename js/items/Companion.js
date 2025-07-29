@@ -1,11 +1,12 @@
+import { ITEM_CONFIG, PLAYER_CONFIG } from '../config.js';
 
-class CompanionItem {
+export class CompanionItem {
     constructor(game, x, y) {
         this.game = game;
         this.x = x;
         this.y = y;
-        this.radius = 15;
-        this.color = "#ff99cc";
+        this.radius = ITEM_CONFIG.BASE.RADIUS;
+        this.color = ITEM_CONFIG.COMPANION.COLOR;
     }
 
     update() {}
@@ -33,7 +34,7 @@ class CompanionItem {
                     vy: Math.sin(angle) * speed,
                     life: 40,
                     decay: 0.92,
-                    color: '#ff99cc',
+                    color: ITEM_CONFIG.COMPANION.COLOR,
                     size: 2 + Math.random() * 3
                 });
             }

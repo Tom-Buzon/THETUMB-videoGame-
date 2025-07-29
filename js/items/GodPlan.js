@@ -1,11 +1,12 @@
+import { ITEM_CONFIG } from '../config.js';
 
-class GodPlanItem {
+export class GodPlanItem {
     constructor(game, x, y) {
         this.game = game;
         this.x = x;
         this.y = y;
-        this.radius = 15;
-        this.color = "#9900cc";
+        this.radius = ITEM_CONFIG.BASE.RADIUS;
+        this.color = ITEM_CONFIG.GOD_PLAN.COLOR;
     }
 
     update() {}
@@ -21,13 +22,13 @@ class GodPlanItem {
         if (this.game.player.isItemOnCooldown('godPlan')) {
             return;
         }
-        
         // Make player invincible for 20 seconds
         this.game.player.invincible = true;
-        this.game.player.activateItemEffect('godPlan', 20000); // 20 seconds
+        this.game.player.activateItemEffect('godPlan', ITEM_CONFIG.GOD_PLAN.DURATION); // 20 seconds
         
         // Set cooldown
-        this.game.player.setItemCooldown('godPlan', 60000); // 60 seconds cooldown
+        this.game.player.setItemCooldown('godPlan', ITEM_CONFIG.GOD_PLAN.COOLDOWN); // 60 seconds cooldown
+        
         
         // Expand canvas temporarily
         this.game.player.expandCanvasTemporarily();
@@ -45,7 +46,7 @@ class GodPlanItem {
                     vy: Math.sin(angle) * speed,
                     life: 80,
                     decay: 0.96,
-                    color: '#9900cc',
+                    color: ITEM_CONFIG.GOD_PLAN.COLOR,
                     size: 3 + Math.random() * 3
                 });
             }
@@ -56,9 +57,9 @@ class GodPlanItem {
             window.audio.playSound("itemPickup");
         }
         
-        // Remove invincibility after 20 seconds
+        // Remove invincibility after duration
         setTimeout(() => {
             this.game.player.invincible = false;
-        }, 20000);
+        }, ITEM_CONFIG.GOD_PLAN.DURATION);
     }
 }

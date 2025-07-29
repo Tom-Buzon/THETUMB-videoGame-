@@ -1,11 +1,12 @@
+import { ITEM_CONFIG } from '../config.js';
 
-class ValkyrieItem {
+export class ValkyrieItem {
     constructor(game, x, y) {
         this.game = game;
         this.x = x;
         this.y = y;
-        this.radius = 15;
-        this.color = "#66ccff";
+        this.radius = ITEM_CONFIG.BASE.RADIUS;
+        this.color = ITEM_CONFIG.VALKYRIE.COLOR;
     }
 
     update() {
@@ -25,13 +26,13 @@ class ValkyrieItem {
         if (this.game.player.isItemOnCooldown('valkyrie')) {
             return;
         }
-        
         // Activate valkyrie effect
         this.game.player.invincible = true;
-        this.game.player.activateItemEffect('valkyrie', 8000); // 8 seconds total
+        this.game.player.activateItemEffect('valkyrie', ITEM_CONFIG.VALKYRIE.DURATION); // 8 seconds total
         
         // Set cooldown
-        this.game.player.setItemCooldown('valkyrie', 30000); // 30 seconds cooldown
+        this.game.player.setItemCooldown('valkyrie', ITEM_CONFIG.VALKYRIE.COOLDOWN); // 30 seconds cooldown
+        
         
         // Add visual feedback
         if (this.game.particleSystem) {
@@ -46,7 +47,7 @@ class ValkyrieItem {
                     vy: Math.sin(angle) * speed,
                     life: 60,
                     decay: 0.95,
-                    color: '#66ccff',
+                    color: ITEM_CONFIG.VALKYRIE.COLOR,
                     size: 3 + Math.random() * 3
                 });
             }
@@ -92,9 +93,9 @@ class ValkyrieItem {
             }
         }, 3000);
         
-        // After 8 seconds, remove invincibility
+        // After duration, remove invincibility
         setTimeout(() => {
             this.game.player.invincible = false;
-        }, 8000);
+        }, ITEM_CONFIG.VALKYRIE.DURATION);
     }
 }

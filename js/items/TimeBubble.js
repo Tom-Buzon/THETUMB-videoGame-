@@ -1,11 +1,12 @@
+import { ITEM_CONFIG } from '../config.js';
 
-class TimeBubbleItem {
+export class TimeBubbleItem {
     constructor(game, x, y) {
         this.game = game;
         this.x = x;
         this.y = y;
-        this.radius = 15;
-        this.color = "#99ccff";
+        this.radius = ITEM_CONFIG.BASE.RADIUS;
+        this.color = ITEM_CONFIG.TIME_BUBBLE.COLOR;
     }
 
     update() {}
@@ -30,21 +31,21 @@ class TimeBubbleItem {
             }
             
             // Slow down enemy
-            enemy.speed = enemy.originalSpeed * 0.3; // 70% slower
+            enemy.speed = enemy.originalSpeed * ITEM_CONFIG.TIME_BUBBLE.SLOW_FACTOR; // 70% slower
             
-            // Reset speed after 5 seconds
+            // Reset speed after duration
             setTimeout(() => {
-                if (enemy.speed === enemy.originalSpeed * 0.3) {
+                if (enemy.speed === enemy.originalSpeed * ITEM_CONFIG.TIME_BUBBLE.SLOW_FACTOR) {
                     enemy.speed = enemy.originalSpeed;
                 }
-            }, 5000);
+            }, ITEM_CONFIG.TIME_BUBBLE.DURATION);
         }
         
         // Activate time bubble effect
-        this.game.player.activateItemEffect('timeBubble', 5000); // 5 seconds
+        this.game.player.activateItemEffect('timeBubble', ITEM_CONFIG.TIME_BUBBLE.DURATION); // 5 seconds
         
         // Set cooldown
-        this.game.player.setItemCooldown('timeBubble', 20000); // 20 seconds cooldown
+        this.game.player.setItemCooldown('timeBubble', ITEM_CONFIG.TIME_BUBBLE.COOLDOWN); // 20 seconds cooldown
         
         // Add visual feedback
         if (this.game.particleSystem) {
@@ -59,7 +60,7 @@ class TimeBubbleItem {
                     vy: Math.sin(angle) * speed,
                     life: 50,
                     decay: 0.93,
-                    color: '#99ccff',
+                    color: ITEM_CONFIG.TIME_BUBBLE.COLOR,
                     size: 2 + Math.random() * 2
                 });
             }

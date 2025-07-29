@@ -1,53 +1,56 @@
-class Weapon {
+import { WEAPON_CONFIG } from './config.js';
+import { Bullet } from './bullet.js';
+
+export class Weapon {
     constructor() {
         this.states = {
             MINIGUN: {
-                name: 'MINI GUN',
-                hpRange: [90, 100],
-                fireRate: 50,
-                damage: 6,
-                recoilMult: 0.1,
-                color: '#00ff00'
+                name: WEAPON_CONFIG.STATES.MINIGUN.NAME,
+                hpRange: WEAPON_CONFIG.STATES.MINIGUN.HP_RANGE,
+                fireRate: WEAPON_CONFIG.STATES.MINIGUN.FIRE_RATE,
+                damage: WEAPON_CONFIG.STATES.MINIGUN.DAMAGE,
+                recoilMult: WEAPON_CONFIG.STATES.MINIGUN.RECOIL_MULT,
+                color: WEAPON_CONFIG.STATES.MINIGUN.COLOR
             },
             AUTO: {
-                name: 'AUTO RIFLE',
-                hpRange: [75, 89],
-                fireRate: 100,
-                damage: 10,
-                recoilMult: 0.3,
-                color: '#00ff00'
+                name: WEAPON_CONFIG.STATES.AUTO.NAME,
+                hpRange: WEAPON_CONFIG.STATES.AUTO.HP_RANGE,
+                fireRate: WEAPON_CONFIG.STATES.AUTO.FIRE_RATE,
+                damage: WEAPON_CONFIG.STATES.AUTO.DAMAGE,
+                recoilMult: WEAPON_CONFIG.STATES.AUTO.RECOIL_MULT,
+                color: WEAPON_CONFIG.STATES.AUTO.COLOR
             },
             BURST: {
-                name: 'BURST RIFLE',
-                hpRange: [50, 74],
-                fireRate: 300,
-                damage: 25,
-                recoilMult: 0.5,
-                color: '#ffff00'
+                name: WEAPON_CONFIG.STATES.BURST.NAME,
+                hpRange: WEAPON_CONFIG.STATES.BURST.HP_RANGE,
+                fireRate: WEAPON_CONFIG.STATES.BURST.FIRE_RATE,
+                damage: WEAPON_CONFIG.STATES.BURST.DAMAGE,
+                recoilMult: WEAPON_CONFIG.STATES.BURST.RECOIL_MULT,
+                color: WEAPON_CONFIG.STATES.BURST.COLOR
             },
             SEMI: {
-                name: 'SEMI-AUTO',
-                hpRange: [25, 49],
-                fireRate: 600,
-                damage: 80,
-                recoilMult: 0.7,
-                color: '#ff6600'
+                name: WEAPON_CONFIG.STATES.SEMI.NAME,
+                hpRange: WEAPON_CONFIG.STATES.SEMI.HP_RANGE,
+                fireRate: WEAPON_CONFIG.STATES.SEMI.FIRE_RATE,
+                damage: WEAPON_CONFIG.STATES.SEMI.DAMAGE,
+                recoilMult: WEAPON_CONFIG.STATES.SEMI.RECOIL_MULT,
+                color: WEAPON_CONFIG.STATES.SEMI.COLOR
             },
             SINGLE: {
-                name: 'SINGLE SHOT',
-                hpRange: [11, 24],
-                fireRate: 1200,
-                damage: 200,
-                recoilMult: 0.9,
-                color: '#ff0000'
+                name: WEAPON_CONFIG.STATES.SINGLE.NAME,
+                hpRange: WEAPON_CONFIG.STATES.SINGLE.HP_RANGE,
+                fireRate: WEAPON_CONFIG.STATES.SINGLE.FIRE_RATE,
+                damage: WEAPON_CONFIG.STATES.SINGLE.DAMAGE,
+                recoilMult: WEAPON_CONFIG.STATES.SINGLE.RECOIL_MULT,
+                color: WEAPON_CONFIG.STATES.SINGLE.COLOR
             },
             LASER: {
-                name: 'LASER',
-                hpRange: [1, 10],
-                fireRate: 1200,
-                damage: 800,
-                recoilMult: 1,
-                color: '#ff0000'
+                name: WEAPON_CONFIG.STATES.LASER.NAME,
+                hpRange: WEAPON_CONFIG.STATES.LASER.HP_RANGE,
+                fireRate: WEAPON_CONFIG.STATES.LASER.FIRE_RATE,
+                damage: WEAPON_CONFIG.STATES.LASER.DAMAGE,
+                recoilMult: WEAPON_CONFIG.STATES.LASER.RECOIL_MULT,
+                color: WEAPON_CONFIG.STATES.LASER.COLOR
             }
         
         };

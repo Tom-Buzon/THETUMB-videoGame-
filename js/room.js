@@ -1,7 +1,16 @@
-class RoomGenerator {
+import { ROOM_CONFIG, PROGRESSION_CONFIG, ITEM_CONFIG } from './config.js';
+import { Charger } from './enemies/charger.js';
+import { Shooter } from './enemies/shooter.js';
+import { Exploder } from './enemies/exploder.js';
+import { Swarmer } from './enemies/swarmer.js';
+import { Healer } from './enemies/healer.js';
+import { Sniper } from './enemies/sniper.js';
+import { Boss } from './enemies/boss.js';
+
+export class RoomGenerator {
     constructor(width, height) {
-        this.width = width;
-        this.height = height;
+        this.width = width || ROOM_CONFIG.CANVAS_WIDTH;
+        this.height = height || ROOM_CONFIG.CANVAS_HEIGHT;
     }
 
     generateEnemies(dungeon, room) {
@@ -22,27 +31,27 @@ class RoomGenerator {
             case 1:
                 // Basic enemies - mostly chargers
                 enemyTypes = ['charger', 'charger', 'shooter', 'sniper'];
-                count = Math.min(count, 5);
+                count = Math.min(count, ROOM_CONFIG.ENEMY_COUNT.DUNGEON_1);
                 break;
             case 2:
                 // Mixed enemies
                 enemyTypes = ['charger', 'shooter', 'exploder', 'sniper'];
-                count = Math.min(count, 6);
+                count = Math.min(count, ROOM_CONFIG.ENEMY_COUNT.DUNGEON_2);
                 break;
             case 3:
                 // More advanced enemies
                 enemyTypes = ['shooter', 'exploder', 'exploder', 'charger', 'swarmer', 'sniper'];
-                count = Math.min(count, 7);
+                count = Math.min(count, ROOM_CONFIG.ENEMY_COUNT.DUNGEON_3);
                 break;
             case 4:
                 // Elite enemies with healers
                 enemyTypes = ['shooter', 'healer', 'exploder', 'charger', 'swarmer', 'sniper'];
-                count = Math.min(count, 8);
+                count = Math.min(count, ROOM_CONFIG.ENEMY_COUNT.DUNGEON_4);
                 break;
             default:
                 // High level - all types with increased difficulty
                 enemyTypes = ['shooter', 'healer', 'exploder', 'charger', 'swarmer', 'healer', 'sniper'];
-                count = Math.min(count, 10);
+                count = Math.min(count, ROOM_CONFIG.ENEMY_COUNT.DUNGEON_5);
         }
         
         for (let i = 0; i < count; i++) {
@@ -84,9 +93,9 @@ class RoomGenerator {
 
     scaleEnemyStats(enemy, dungeonLevel) {
         // Progressive scaling with exponential growth for higher dungeons
-        const healthMultiplier = Math.pow(1.4, dungeonLevel - 1);
-        const speedMultiplier = Math.pow(1.2, dungeonLevel - 1);
-        const damageMultiplier = Math.pow(1.3, dungeonLevel - 1);
+        const healthMultiplier = Math.pow(PROGRESSION_CONFIG.ENEMY_SCALING.HEALTH_MULTIPLIER, dungeonLevel - 1);
+        const speedMultiplier = Math.pow(PROGRESSION_CONFIG.ENEMY_SCALING.SPEED_MULTIPLIER, dungeonLevel - 1);
+        const damageMultiplier = Math.pow(PROGRESSION_CONFIG.ENEMY_SCALING.DAMAGE_MULTIPLIER, dungeonLevel - 1);
         
         enemy.maxHealth *= healthMultiplier;
         enemy.health = enemy.maxHealth;
@@ -107,29 +116,29 @@ class RoomGenerator {
 
     generateObstacles(dungeon, room) {
         const obstacles = [];
-        let count = Math.min(2 + dungeon * 2, 12);
+        let count = Math.min(2 + dungeon * PROGRESSION_CONFIG.OBSTACLE_SCALING.COUNT_MULTIPLIER, 12);
         
         // Dungeon-specific obstacle patterns
         switch(dungeon) {
             case 1:
                 // Simple static obstacles
-                count = 7;
+                count = ROOM_CONFIG.OBSTACLE_COUNT.DUNGEON_1;
                 break;
             case 2:
                 // More complex layouts
-                count = 10;
+                count = ROOM_CONFIG.OBSTACLE_COUNT.DUNGEON_2;
                 break;
             case 3:
                 // Damaging obstacles introduced
-                count = 13;
+                count = ROOM_CONFIG.OBSTACLE_COUNT.DUNGEON_3;
                 break;
             case 4:
                 // Complex maze-like patterns
-                count = 15;
+                count = ROOM_CONFIG.OBSTACLE_COUNT.DUNGEON_4;
                 break;
             default:
                 // Maximum chaos
-                count = 15 + Math.floor(dungeon / 2);
+                count = ROOM_CONFIG.OBSTACLE_COUNT.DUNGEON_5;
         }
         
         for (let i = 0; i < count; i++) {
@@ -152,7 +161,7 @@ class RoomGenerator {
             } while (Math.abs(x - this.width/2) < 80 && Math.abs(y - this.height/2) < 80);
             
             // Progressive damaging obstacles
-            const isDamaging = Math.random() < Math.min(0.3 + dungeon * 0.15, 0.8);
+            const isDamaging = Math.random() < Math.min(0.3 + dungeon * PROGRESSION_CONFIG.OBSTACLE_SCALING.DAMAGE_INCREASE, 0.8);
             obstacles.push(new Obstacle(x, y, width, height, isDamaging));
         }
         return obstacles;
@@ -168,7 +177,7 @@ class RoomGenerator {
         const room = itemManager.game.currentRoom;
         
         // Base item count with progression
-        let baseItemCount = 1 + Math.floor(dungeon * 0.5) + Math.floor(room * 0.3);
+        let baseItemCount = ROOM_CONFIG.BASE_ITEM_COUNT + Math.floor(dungeon * PROGRESSION_CONFIG.ITEM_SPAWNING.COUNT_MULTIPLIER) + Math.floor(room * PROGRESSION_CONFIG.ITEM_SPAWNING.ROOM_MULTIPLIER);
         // Add some randomness but keep it progressive
         const itemCount = Math.max(1, baseItemCount + Math.floor(Math.random() * 2) - 1);
         
@@ -176,10 +185,10 @@ class RoomGenerator {
         const getItemByRarity = (dungeonLevel) => {
             // Define item rarities (common, uncommon, rare, epic)
             const rarities = {
-                common: ['Medkit', 'Valkyrie'],
-                uncommon: ['Shield', 'Ghost', 'Companion'],
-                rare: ['Bazooka', 'Ricochet', 'TimeBubble'],
-                epic: ['BlackHole', 'GodPlan', 'RandomBox']
+                common: ROOM_CONFIG.ITEM_RARITY.COMMON,
+                uncommon: ROOM_CONFIG.ITEM_RARITY.UNCOMMON,
+                rare: ROOM_CONFIG.ITEM_RARITY.RARE,
+                epic: ROOM_CONFIG.ITEM_RARITY.EPIC
             };
             
             // Adjust rarities based on dungeon level

@@ -1,11 +1,12 @@
+import { ITEM_CONFIG, PLAYER_CONFIG } from '../config.js';
 
-class MedkitItem {
+export class MedkitItem {
     constructor(game, x, y) {
         this.game = game;
         this.x = x;
         this.y = y;
-        this.radius = 15;
-        this.color = "#00ff99";
+        this.radius = ITEM_CONFIG.BASE.RADIUS;
+        this.color = ITEM_CONFIG.MEDKIT.COLOR;
     }
 
     update() {}
@@ -23,10 +24,10 @@ class MedkitItem {
         }
         
         // Heal player
-        this.game.player.heal(50);
+        this.game.player.heal(ITEM_CONFIG.MEDKIT.HEAL_AMOUNT);
         
         // Set cooldown
-        this.game.player.setItemCooldown('medkit', 10000); // 10 seconds cooldown
+        this.game.player.setItemCooldown('medkit', ITEM_CONFIG.MEDKIT.COOLDOWN); // 10 seconds cooldown
         
         // Add visual feedback
         if (this.game.particleSystem) {
@@ -41,7 +42,7 @@ class MedkitItem {
                     vy: Math.sin(angle) * speed,
                     life: 30,
                     decay: 0.9,
-                    color: '#00ff99',
+                    color: ITEM_CONFIG.MEDKIT.COLOR,
                     size: 2 + Math.random() * 2
                 });
             }

@@ -1,11 +1,12 @@
+import { ITEM_CONFIG } from '../config.js';
 
-class ShieldItem {
+export class ShieldItem {
     constructor(game, x, y) {
         this.game = game;
         this.x = x;
         this.y = y;
-        this.radius = 15;
-        this.color = "#66ffff";
+        this.radius = ITEM_CONFIG.BASE.RADIUS;
+        this.color = ITEM_CONFIG.SHIELD.COLOR;
     }
 
     update() {}
@@ -23,11 +24,11 @@ class ShieldItem {
         }
         
         // Activate shield effect
-        this.game.player.shield = 200;
-        this.game.player.activateItemEffect('shield', 10000); // 10 seconds
+        this.game.player.shield = ITEM_CONFIG.SHIELD.SHIELD_AMOUNT;
+        this.game.player.activateItemEffect('shield', ITEM_CONFIG.SHIELD.DURATION); // 10 seconds
         
         // Set cooldown
-        this.game.player.setItemCooldown('shield', 30000); // 30 seconds cooldown
+        this.game.player.setItemCooldown('shield', ITEM_CONFIG.SHIELD.COOLDOWN); // 30 seconds cooldown
         
         // Add visual feedback
         if (this.game.particleSystem) {
@@ -41,7 +42,7 @@ class ShieldItem {
                     vy: Math.sin(angle) * 3,
                     life: 60,
                     decay: 0.95,
-                    color: '#66ffff',
+                    color: ITEM_CONFIG.SHIELD.COLOR,
                     size: 3 + Math.random() * 2
                 });
             }

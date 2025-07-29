@@ -1,11 +1,12 @@
+import { ITEM_CONFIG } from '../config.js';
 
-class RicochetItem {
+export class RicochetItem {
     constructor(game, x, y) {
         this.game = game;
         this.x = x;
         this.y = y;
-        this.radius = 15;
-        this.color = "#ff9900";
+        this.radius = ITEM_CONFIG.BASE.RADIUS;
+        this.color = ITEM_CONFIG.RICOCHET.COLOR;
     }
 
     update() {}
@@ -28,10 +29,10 @@ class RicochetItem {
         if (this.game.ui) {
             this.game.ui.showWeaponChangeMessage('RICOCHET');
         }
-        this.game.player.activateItemEffect('ricochet', 15000); // 15 seconds
+        this.game.player.activateItemEffect('ricochet', ITEM_CONFIG.RICOCHET.DURATION); // 15 seconds
         
         // Set cooldown
-        this.game.player.setItemCooldown('ricochet', 30000); // 30 seconds cooldown
+        this.game.player.setItemCooldown('ricochet', ITEM_CONFIG.RICOCHET.COOLDOWN); // 30 seconds cooldown
         
         // Add visual feedback
         if (this.game.particleSystem) {
@@ -46,7 +47,7 @@ class RicochetItem {
                     vy: Math.sin(angle) * speed,
                     life: 30,
                     decay: 0.92,
-                    color: '#ff9900',
+                    color: ITEM_CONFIG.RICOCHET.COLOR,
                     size: 2 + Math.random() * 2
                 });
             }

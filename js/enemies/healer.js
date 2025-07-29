@@ -1,11 +1,18 @@
-class Healer extends Enemy {
+import { ENEMY_CONFIG } from '../config.js';
+import { Enemy } from '../enemy.js';
+import { Vector2D } from '../vector2d.js';
+
+export class Healer extends Enemy {
     constructor(x, y) {
-        super(x, y, 12, '#FF00FF', 8, 5);
-        this.maxHealth = 30;
+        super(x, y);
+        this.size = ENEMY_CONFIG.HEALER.SIZE;
+        this.color = ENEMY_CONFIG.HEALER.COLOR;
+        this.speed = ENEMY_CONFIG.HEALER.SPEED;
+        this.maxHealth = ENEMY_CONFIG.HEALER.MAX_HEALTH;
         this.health = this.maxHealth;
-        this.healRadius = 100;
-        this.healAmount = 1;
-        this.healInterval = 120;
+        this.healRadius = ENEMY_CONFIG.HEALER.HEAL_RANGE;
+        this.healAmount = ENEMY_CONFIG.HEALER.HEAL_AMOUNT;
+        this.healInterval = ENEMY_CONFIG.HEALER.HEAL_COOLDOWN;
         this.lastHeal = 0;
         this.shieldRadius = 60;
         this.deathAnimation = 0;
@@ -59,7 +66,7 @@ class Healer extends Enemy {
                 direction.x * 4,
                 direction.y * 4,
                 15, // Damage
-                '#FF00FF', // Pink color
+                this.color, // Use enemy color
                 2, // Size
                 'enemy'
             );

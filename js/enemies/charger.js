@@ -1,19 +1,22 @@
-class Charger {
+import { ENEMY_CONFIG } from '../config.js';
+import { Vector2D } from '../vector2d.js';
+
+export class Charger {
     constructor(x, y) {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(0, 0);
-        this.size = 25;
-        this.health = 80;
-        this.maxHealth = 80;
-        this.speed = 3;
-        this.color = '#ff4444';
+        this.size = ENEMY_CONFIG.CHARGER.SIZE;
+        this.health = ENEMY_CONFIG.CHARGER.HEALTH;
+        this.maxHealth = ENEMY_CONFIG.CHARGER.MAX_HEALTH;
+        this.speed = ENEMY_CONFIG.CHARGER.SPEED;
+        this.color = ENEMY_CONFIG.CHARGER.COLOR;
         this.activated = false;
         this.chargeCooldown = 0;
-        this.chargeSpeed = 8;
+        this.chargeSpeed = ENEMY_CONFIG.CHARGER.CHARGE_SPEED;
         this.isCharging = false;
         this.chargeDirection = new Vector2D(0, 0);
         this.chargeDuration = 0;
-        this.maxChargeDuration = 30;
+        this.maxChargeDuration = ENEMY_CONFIG.CHARGER.MAX_CHARGE_DURATION;
         this.deathAnimation = 0;
         this.isDying = false;
         this.chargeGlow = 0;
@@ -44,16 +47,16 @@ class Charger {
             );
             
             if (distanceToPlayer < this.size + player.size) {
-                player.takeDamage(25, 'charger'); // Charger charge damage
+                player.takeDamage(ENEMY_CONFIG.CHARGER.CHARGE_DAMAGE, 'charger'); // Charger charge damage
                 // End charge after hitting player
                 this.isCharging = false;
-                this.chargeCooldown = 60;
+                this.chargeCooldown = ENEMY_CONFIG.CHARGER.CHARGE_COOLDOWN;
                 this.chargeDuration = 0;
             }
             
             if (this.chargeDuration >= this.maxChargeDuration) {
                 this.isCharging = false;
-                this.chargeCooldown = 60;
+                this.chargeCooldown = ENEMY_CONFIG.CHARGER.CHARGE_COOLDOWN;
                 this.chargeDuration = 0;
             }
         } else if (this.chargeCooldown > 0) {

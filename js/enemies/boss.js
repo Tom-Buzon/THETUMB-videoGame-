@@ -1,17 +1,24 @@
-class Boss {
+import { ENEMY_CONFIG } from '../config.js';
+import { Vector2D } from '../vector2d.js';
+import { Bullet } from '../bullet.js';
+import { Swarmer } from './swarmer.js';
+import { Shooter } from './shooter.js';
+import { Exploder } from './exploder.js';
+
+export class Boss {
     constructor(x, y) {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(0, 0);
-        this.size = 45;
-        this.health = 500;
-        this.maxHealth = 500;
-        this.speed = 1.2;
-        this.color = '#8B0000';
+        this.size = ENEMY_CONFIG.BOSS.SIZE;
+        this.health = ENEMY_CONFIG.BOSS.HEALTH;
+        this.maxHealth = ENEMY_CONFIG.BOSS.MAX_HEALTH;
+        this.speed = ENEMY_CONFIG.BOSS.SPEED;
+        this.color = ENEMY_CONFIG.BOSS.COLOR;
         this.activated = true;
         
         // **PHASES DE COMBAT**
         this.phase = 1;
-        this.phaseThresholds = [350, 200, 100];
+        this.phaseThresholds = ENEMY_CONFIG.BOSS.PHASE_THRESHOLDS;
         
         // **ATTAQUES COMPLEXES**
         this.attackCooldown = 0;
@@ -19,10 +26,10 @@ class Boss {
         this.currentAttack = 0;
         
         // **AURA ET PARTICULES**
-        this.auraRadius = 80;
+        this.auraRadius = ENEMY_CONFIG.BOSS.AURA_RADIUS;
         this.auraParticles = [];
-        this.auraColor = '#ff0000';
-        this.auraIntensity = 0.5;
+        this.auraColor = ENEMY_CONFIG.BOSS.AURA_COLOR;
+        this.auraIntensity = ENEMY_CONFIG.BOSS.AURA_INTENSITY;
         
         // **MINIONS**
         this.minionSpawnCooldown = 0;
@@ -134,19 +141,19 @@ class Boss {
         // **PATTERN D'ATTAQUE SELON LA PHASE**
         switch (this.phase) {
             case 1:
-                this.attackCooldown = 90;
+                this.attackCooldown = ENEMY_CONFIG.BOSS.ATTACK_COOLDOWNS.PHASE_1;
                 bullets.push(...this.circleAttack(player));
                 break;
             case 2:
-                this.attackCooldown = 60;
+                this.attackCooldown = ENEMY_CONFIG.BOSS.ATTACK_COOLDOWNS.PHASE_2;
                 bullets.push(...this.spiralAttack(player));
                 break;
             case 3:
-                this.attackCooldown = 45;
+                this.attackCooldown = ENEMY_CONFIG.BOSS.ATTACK_COOLDOWNS.PHASE_3;
                 bullets.push(...this.homingAttack(player));
                 break;
             case 4:
-                this.attackCooldown = 30;
+                this.attackCooldown = ENEMY_CONFIG.BOSS.ATTACK_COOLDOWNS.PHASE_4;
                 bullets.push(...this.comboAttack(player));
                 break;
         }
@@ -274,7 +281,7 @@ class Boss {
         }
         
         if (this.phase >= 3 && this.minionSpawnCooldown <= 0) {
-            this.minionSpawnCooldown = 180 - this.phase * 30;
+            this.minionSpawnCooldown = ENEMY_CONFIG.BOSS.MINION_SPAWN_COOLDOWN;
             
             const angle = Math.random() * Math.PI * 2;
             const distance = 100;
@@ -312,11 +319,11 @@ class Boss {
         
         if (this.phase >= 2 && this.shieldCooldown <= 0 && !this.shieldActive) {
             this.shieldActive = true;
-            this.shieldCooldown = 300;
+            this.shieldCooldown = ENEMY_CONFIG.BOSS.SHIELD_COOLDOWN;
             
             setTimeout(() => {
                 this.shieldActive = false;
-            }, 2000);
+            }, ENEMY_CONFIG.BOSS.SHIELD_DURATION);
         }
     }
 
@@ -332,7 +339,7 @@ class Boss {
             );
             
             if (distance < 100) {
-                this.teleportCooldown = 180;
+                this.teleportCooldown = ENEMY_CONFIG.BOSS.TELEPORT_COOLDOWN;
                 
                 // Téléportation aléatoire
                 this.position.x = Math.random() * 600 + 100;
@@ -356,7 +363,7 @@ class Boss {
 
     takeDamage(amount) {
         if (this.shieldActive) {
-            amount = Math.floor(amount * 0.3); // Réduction de dégâts avec shield
+            amount = Math.floor(amount * ENEMY_CONFIG.BOSS.SHIELD_DAMAGE_REDUCTION); // Réduction de dégâts avec shield
         }
         
         this.health = Math.max(0, this.health - amount);

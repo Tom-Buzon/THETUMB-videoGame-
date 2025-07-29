@@ -8,41 +8,59 @@
 </head>
 <body>
     <div id="gameContainer">
-        <canvas id="gameCanvas" width="1400" height="1000"></canvas>
+        <div id="hud">
+            <div id="hud-left">
+                <div id="health-container">
+                    <div id="health-bar">
+                        <div id="health-fill"></div>
+                    </div>
+                    <div id="health-text">HEALTH: 100/100</div>
+                </div>
+                <div id="weapon-info">WEAPON: AUTO RIFLE</div>
+            </div>
+            <div id="hud-center">
+                <div id="dungeon-info">DUNGEON 1 - ROOM 1/3</div>
+            </div>
+            <div id="hud-right">
+                <div id="score-display">SCORE: 0</div>
+                <div id="timer-display">TIME: 00:00</div>
+            </div>
+        </div>
+        <canvas id="gameCanvas" width="1400" height="940"></canvas>
         
         
     <script src="js/utils.js"></script>
-    <script src="js/vector2d.js"></script>
-    <script src="js/weapon.js"></script>
-    <script src="js/player.js"></script>
-    <script src="js/bullet.js"></script>
-    <script src="js/enemy.js"></script>
-    <script src="js/enemies/swarmer.js"></script>
-    <script src="js/enemies/exploder.js"></script>
-    <script src="js/enemies/shooter.js"></script>
-    <script src="js/enemies/charger.js"></script>
-    <script src="js/enemies/sniper.js"></script>
-    <script src="js/enemies/healer.js"></script>
-    <script src="js/enemies/boss.js"></script>
+    <script src="js/vector2d.js" type="module"></script>
+    <script src="js/weapon.js" type="module"></script>
+    <script src="js/player.js" type="module"></script>
+    <script src="js/bullet.js" type="module"></script>
+    <script src="js/enemy.js" type="module"></script>
+    <script src="js/enemies/swarmer.js" type="module"></script>
+    <script src="js/enemies/exploder.js" type="module"></script>
+    <script src="js/enemies/shooter.js" type="module"></script>
+    <script src="js/enemies/charger.js" type="module"></script>
+    <script src="js/enemies/sniper.js" type="module"></script>
+    <script src="js/enemies/healer.js" type="module"></script>
+    <script src="js/enemies/boss.js" type="module"></script>
     <script src="js/obstacle.js"></script>
     <script src="js/item.js"></script>
-    <script src="js/particles.js"></script>
+    <script src="js/particles.js" type="module"></script>
     <script src="js/audio.js"></script>
-    <script src="js/room.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/items/Medkit.js"></script>
-    <script src="js/items/Valkyrie.js"></script>
-    <script src="js/items/Shield.js"></script>
-    <script src="js/items/Bazooka.js"></script>
-    <script src="js/items/BlackHole.js"></script>
-    <script src="js/items/Companion.js"></script>
-    <script src="js/items/Ghost.js"></script>
-    <script src="js/items/TimeBubble.js"></script>
-    <script src="js/items/GodPlan.js"></script>
-    <script src="js/items/RandomBox.js"></script>
-    <script src="js/items/Ricochet.js"></script>
-    <script src="js/items/ItemManager.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/room.js" type="module"></script>
+    <script src="js/ui.js" type="module"></script>
+    <script src="js/game.js" type="module"></script>
+    <script src="js/items/Medkit.js" type="module"></script>
+    <script src="js/items/Valkyrie.js" type="module"></script>
+    <script src="js/items/Shield.js" type="module"></script>
+    <script src="js/items/Bazooka.js" type="module"></script>
+    <script src="js/items/BlackHole.js" type="module"></script>
+    <script src="js/items/Companion.js" type="module"></script>
+    <script src="js/items/Ghost.js" type="module"></script>
+    <script src="js/items/TimeBubble.js" type="module"></script>
+    <script src="js/items/GodPlan.js" type="module"></script>
+    <script src="js/items/RandomBox.js" type="module"></script>
+    <script src="js/items/Ricochet.js" type="module"></script>
+    <script src="js/items/ItemManager.js" type="module"></script>
+    <script src="js/main.js" type="module"></script>
 </body>
 </html>

@@ -1,14 +1,15 @@
+import { ITEM_CONFIG } from '../config.js';
 
-class BlackHoleItem {
+export class BlackHoleItem {
     constructor(game, x, y) {
         this.game = game;
         this.x = x;
         this.y = y;
-        this.radius = 15;
-        this.color = "#333399";
+        this.radius = ITEM_CONFIG.BASE.RADIUS;
+        this.color = ITEM_CONFIG.BLACK_HOLE.COLOR;
         this.active = false;
         this.startTime = 0;
-        this.duration = 3000; // 3 seconds
+        this.duration = ITEM_CONFIG.BLACK_HOLE.DURATION; // 3 seconds
     }
 
     update() {
@@ -39,7 +40,7 @@ class BlackHoleItem {
             
             // Draw attraction effect
             ctx.beginPath();
-            ctx.arc(this.x, this.y, 300, 0, Math.PI * 2);
+            ctx.arc(this.x, this.y, ITEM_CONFIG.BLACK_HOLE.ATTRACTION_RANGE, 0, Math.PI * 2);
             ctx.strokeStyle = 'rgba(51, 51, 153, 0.3)';
             ctx.lineWidth = 2;
             ctx.stroke();
@@ -60,10 +61,10 @@ class BlackHoleItem {
         // Activate black hole effect
         this.active = true;
         this.startTime = Date.now();
-        this.game.player.activateItemEffect('blackHole', 10000); // 10 seconds
+        this.game.player.activateItemEffect('blackHole', ITEM_CONFIG.BLACK_HOLE.COOLDOWN); // 10 seconds
         
         // Set cooldown
-        this.game.player.setItemCooldown('blackHole', 30000); // 30 seconds cooldown
+        this.game.player.setItemCooldown('blackHole', ITEM_CONFIG.BLACK_HOLE.COOLDOWN); // 30 seconds cooldown
         
         // Add visual feedback
         if (this.game.particleSystem) {
@@ -78,7 +79,7 @@ class BlackHoleItem {
                     vy: Math.sin(angle) * speed,
                     life: 60,
                     decay: 0.95,
-                    color: '#333399',
+                    color: ITEM_CONFIG.BLACK_HOLE.COLOR,
                     size: 3 + Math.random() * 3
                 });
             }
@@ -96,13 +97,13 @@ class BlackHoleItem {
             const dy = this.y - enemy.position.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             
-            if (dist < 300) { // Within attraction range
+            if (dist < ITEM_CONFIG.BLACK_HOLE.ATTRACTION_RANGE) { // Within attraction range
                 // Normalize direction
                 const nx = dx / dist;
                 const ny = dy / dist;
                 
                 // Apply attraction force
-                const force = 0.5 * (1 - dist / 300); // Stronger closer to black hole
+                const force = 0.5 * (1 - dist / ITEM_CONFIG.BLACK_HOLE.ATTRACTION_RANGE); // Stronger closer to black hole
                 enemy.position.x += nx * force;
                 enemy.position.y += ny * force;
             }
@@ -116,14 +117,14 @@ class BlackHoleItem {
             const dy = this.y - enemy.position.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             
-            if (dist < 300) {
+            if (dist < ITEM_CONFIG.BLACK_HOLE.ATTRACTION_RANGE) {
                 enemy.takeDamage(9999);
             }
         }
         
         // Add explosion effect
         if (this.game.particleSystem) {
-            this.game.particleSystem.addExplosion(this.x, this.y, '#333399', 50, 3);
+            this.game.particleSystem.addExplosion(this.x, this.y, ITEM_CONFIG.BLACK_HOLE.COLOR, 50, 3);
         }
         
         // Play explosion sound

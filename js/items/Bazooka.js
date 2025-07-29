@@ -1,11 +1,12 @@
+import { ITEM_CONFIG, PLAYER_CONFIG } from '../config.js';
 
-class BazookaItem {
+export class BazookaItem {
     constructor(game, x, y) {
         this.game = game;
         this.x = x;
         this.y = y;
-        this.radius = 15;
-        this.color = "#ff3333";
+        this.radius = ITEM_CONFIG.BASE.RADIUS;
+        this.color = ITEM_CONFIG.BAZOOKA.COLOR;
     }
 
     update() {}
@@ -28,10 +29,10 @@ class BazookaItem {
         if (this.game.ui) {
             this.game.ui.showWeaponChangeMessage('BAZOOKA');
         }
-        this.game.player.activateItemEffect('bazooka', 15000); // 15 seconds
+        this.game.player.activateItemEffect('bazooka', ITEM_CONFIG.BAZOOKA.DURATION); // 15 seconds
         
         // Set cooldown
-        this.game.player.setItemCooldown('bazooka', 45000); // 45 seconds cooldown
+        this.game.player.setItemCooldown('bazooka', ITEM_CONFIG.BAZOOKA.COOLDOWN); // 45 seconds cooldown
         
         // Add visual feedback
         if (this.game.particleSystem) {
@@ -46,7 +47,7 @@ class BazookaItem {
                     vy: Math.sin(angle) * speed,
                     life: 40,
                     decay: 0.92,
-                    color: '#ff3333',
+                    color: ITEM_CONFIG.BAZOOKA.COLOR,
                     size: 2 + Math.random() * 3
                 });
             }

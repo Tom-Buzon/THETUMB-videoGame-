@@ -1,11 +1,12 @@
+import { ITEM_CONFIG } from '../config.js';
 
-class GhostItem {
+export class GhostItem {
     constructor(game, x, y) {
         this.game = game;
         this.x = x;
         this.y = y;
-        this.radius = 15;
-        this.color = "#cccccc";
+        this.radius = ITEM_CONFIG.BASE.RADIUS;
+        this.color = ITEM_CONFIG.GHOST.COLOR;
     }
 
     update() {}
@@ -21,13 +22,13 @@ class GhostItem {
         if (this.game.player.isItemOnCooldown('ghost')) {
             return;
         }
-        
         // Activate ghost effect
         this.game.player.ghost = true;
-        this.game.player.activateItemEffect('ghost', 5000); // 5 seconds
+        this.game.player.activateItemEffect('ghost', ITEM_CONFIG.GHOST.DURATION); // 5 seconds
         
         // Set cooldown
-        this.game.player.setItemCooldown('ghost', 20000); // 20 seconds cooldown
+        this.game.player.setItemCooldown('ghost', ITEM_CONFIG.GHOST.COOLDOWN); // 20 seconds cooldown
+        
         
         // Add visual feedback
         if (this.game.particleSystem) {
@@ -40,7 +41,7 @@ class GhostItem {
                     vy: (Math.random() - 0.5) * 2,
                     life: 30,
                     decay: 0.9,
-                    color: '#cccccc',
+                    color: ITEM_CONFIG.GHOST.COLOR,
                     size: 2 + Math.random() * 2
                 });
             }

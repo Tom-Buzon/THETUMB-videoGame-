@@ -1,17 +1,21 @@
-class Bullet {
+// Import configuration
+import { BULLET_CONFIG, PARTICLE_CONFIG } from './config.js';
+import { Vector2D } from './vector2d.js';
+
+export class Bullet {
     constructor(x, y, vx, vy, damage, color, size, source = 'player') {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(vx, vy);
         this.damage = damage;
         this.color = color;
-        this.size = size;
+        this.size = size || (source === 'player' ? BULLET_CONFIG.PLAYER_BULLET.SIZE : BULLET_CONFIG.ENEMY_BULLET.SIZE);
         this.source = source;
-        this.life = 150;
-        this.maxLife = 150;
+        this.life = source === 'player' ? BULLET_CONFIG.PLAYER_BULLET.LIFE : BULLET_CONFIG.ENEMY_BULLET.LIFE;
+        this.maxLife = source === 'player' ? BULLET_CONFIG.PLAYER_BULLET.MAX_LIFE : BULLET_CONFIG.ENEMY_BULLET.MAX_LIFE;
         this.trail = [];
-        this.maxTrailLength = 8;
-        this.trailAlpha = 0.7;
-        this.muzzleFlash = 5;
+        this.maxTrailLength = BULLET_CONFIG.PLAYER_BULLET.MAX_TRAIL_LENGTH;
+        this.trailAlpha = BULLET_CONFIG.PLAYER_BULLET.TRAIL_ALPHA;
+        this.muzzleFlash = source === 'player' ? BULLET_CONFIG.PLAYER_BULLET.MUZZLE_FLASH_DURATION : 0;
         this.impactSparks = [];
         this.glowIntensity = 1;
         this.trailColor = this.getTrailColor();
@@ -20,14 +24,14 @@ class Bullet {
     getTrailColor() {
         // Color-coded trails based on damage source
         const trailColors = {
-            'player': '#00ffff',
-            'enemy': '#ff4444',
-            'exploder': '#ff6600',
-            'charger': '#ff0000',
-            'shooter': '#44ff44',
-            'sniper': '#8844ff',
-            'healer': '#ff00ff',
-            'swarmer': '#ff6600'
+            'player': BULLET_CONFIG.TRAIL_COLORS.PLAYER,
+            'enemy': BULLET_CONFIG.TRAIL_COLORS.ENEMY,
+            'exploder': BULLET_CONFIG.TRAIL_COLORS.EXPLODER,
+            'charger': BULLET_CONFIG.TRAIL_COLORS.CHARGER,
+            'shooter': BULLET_CONFIG.TRAIL_COLORS.SHOOTER,
+            'sniper': BULLET_CONFIG.TRAIL_COLORS.SNIPER,
+            'healer': BULLET_CONFIG.TRAIL_COLORS.HEALER,
+            'swarmer': BULLET_CONFIG.TRAIL_COLORS.SWARMER
         };
         
         return trailColors[this.source] || this.color;
@@ -68,7 +72,7 @@ class Bullet {
 
     addImpactSparks(x, y) {
         // Create impact sparks on collision
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < PARTICLE_CONFIG.IMPACT_SPARKS.COUNT; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = 1 + Math.random() * 3;
             this.impactSparks.push({
@@ -76,10 +80,10 @@ class Bullet {
                 y: y,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
-                life: 10,
-                maxLife: 10,
+                life: PARTICLE_CONFIG.IMPACT_SPARKS.LIFE,
+                maxLife: PARTICLE_CONFIG.IMPACT_SPARKS.MAX_LIFE,
                 color: this.color,
-                size: 1 + Math.random() * 2
+                size: PARTICLE_CONFIG.IMPACT_SPARKS.SIZE.MIN + Math.random() * (PARTICLE_CONFIG.IMPACT_SPARKS.SIZE.MAX - PARTICLE_CONFIG.IMPACT_SPARKS.SIZE.MIN)
             });
         }
     }

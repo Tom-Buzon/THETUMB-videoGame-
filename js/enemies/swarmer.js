@@ -1,12 +1,15 @@
-class Swarmer {
+import { ENEMY_CONFIG } from '../config.js';
+import { Vector2D } from '../vector2d.js';
+
+export class Swarmer {
     constructor(x, y) {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(0, 0);
-        this.size = 12;
-        this.health = 30;
-        this.maxHealth = 30;
-        this.speed = 2.5;
-        this.color = '#ff6600';
+        this.size = ENEMY_CONFIG.SWARMER.SIZE;
+        this.health = ENEMY_CONFIG.SWARMER.HEALTH;
+        this.maxHealth = ENEMY_CONFIG.SWARMER.MAX_HEALTH;
+        this.speed = ENEMY_CONFIG.SWARMER.SPEED;
+        this.color = ENEMY_CONFIG.SWARMER.COLOR;
         this.activated = false;
         this.deathAnimation = 0;
         this.isDying = false;
@@ -44,7 +47,7 @@ class Swarmer {
         );
         
         if (distanceToPlayer < this.size + player.size) {
-            player.takeDamage(20, 'swarmer'); // Swarmer melee damage
+            player.takeDamage(ENEMY_CONFIG.SWARMER.HEALTH, 'swarmer'); // Swarmer melee damage
         }
 
         return null;

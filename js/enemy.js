@@ -1,12 +1,15 @@
-class Enemy {
+import { ENEMY_CONFIG } from './config.js';
+import { Vector2D } from './vector2d.js';
+
+export class Enemy {
     constructor(x, y) {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(0, 0);
-        this.size = 12;
-        this.health = 20;
-        this.maxHealth = 20;
-        this.speed = 1;
-        this.color = '#ff0000';
+        this.size = ENEMY_CONFIG.BASE.SIZE;
+        this.health = ENEMY_CONFIG.BASE.HEALTH;
+        this.maxHealth = ENEMY_CONFIG.BASE.MAX_HEALTH;
+        this.speed = ENEMY_CONFIG.BASE.SPEED;
+        this.color = ENEMY_CONFIG.BASE.COLOR;
         this.activated = false;
         this.spawnTime = Date.now();
         this.lastShot = 0;

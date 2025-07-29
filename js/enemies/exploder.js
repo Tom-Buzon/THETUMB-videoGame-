@@ -1,14 +1,17 @@
-class Exploder {
+import { ENEMY_CONFIG } from '../config.js';
+import { Vector2D } from '../vector2d.js';
+
+export class Exploder {
     constructor(x, y) {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(0, 0);
-        this.size = 15;
-        this.health = 40;
-        this.maxHealth = 40;
-        this.speed = 2;
-        this.color = '#ff00ff';
+        this.size = ENEMY_CONFIG.EXPLODER.SIZE;
+        this.health = ENEMY_CONFIG.EXPLODER.HEALTH;
+        this.maxHealth = ENEMY_CONFIG.EXPLODER.MAX_HEALTH;
+        this.speed = ENEMY_CONFIG.EXPLODER.SPEED;
+        this.color = ENEMY_CONFIG.EXPLODER.COLOR;
         this.activated = false;
-        this.explosionRadius = 60;
+        this.explosionRadius = ENEMY_CONFIG.EXPLODER.EXPLOSION_RADIUS;
         this.deathAnimation = 0;
         this.isDying = false;
         this.pulsePhase = 0;
@@ -134,7 +137,7 @@ class Exploder {
             if (distanceToPlayer <= this.explosionRadius) {
                 // Damage decreases with distance
                 const damageMultiplier = 1 - (distanceToPlayer / this.explosionRadius);
-                const damage = Math.floor(25 * damageMultiplier); // 25 max damage at center
+                const damage = Math.floor(ENEMY_CONFIG.EXPLODER.EXPLOSION_DAMAGE * damageMultiplier); // Max damage at center
                 player.takeDamage(Math.max(damage, 5), 'exploder'); // Minimum 5 damage
             }
         }

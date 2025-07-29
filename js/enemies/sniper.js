@@ -1,15 +1,19 @@
-class Sniper {
+import { ENEMY_CONFIG } from '../config.js';
+import { Vector2D } from '../vector2d.js';
+import { Bullet } from '../bullet.js';
+
+export class Sniper {
     constructor(x, y) {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(0, 0);
-        this.size = 20;
-        this.health = 60;
-        this.maxHealth = 60;
-        this.speed = 1.5;
-        this.color = '#8844ff';
+        this.size = ENEMY_CONFIG.SNIPER.SIZE;
+        this.health = ENEMY_CONFIG.SNIPER.HEALTH;
+        this.maxHealth = ENEMY_CONFIG.SNIPER.MAX_HEALTH;
+        this.speed = ENEMY_CONFIG.SNIPER.SPEED;
+        this.color = ENEMY_CONFIG.SNIPER.COLOR;
         this.activated = false;
         this.shootCooldown = 0;
-        this.shootRange = 1000;
+        this.shootRange = ENEMY_CONFIG.SNIPER.SHOOT_RANGE;
         this.retreatDistance = 800;
         this.deathAnimation = 0;
         this.isDying = false;
@@ -68,16 +72,16 @@ class Sniper {
         }
 
         if (distanceToPlayer <= this.shootRange && this.shootCooldown <= 0) {
-            this.shootCooldown = 60; // 2 seconds
+            this.shootCooldown = ENEMY_CONFIG.SNIPER.SHOOT_COOLDOWN; // 2 seconds
             
             const bulletDirection = direction;
             return new Bullet(
                 this.position.x + bulletDirection.x * 25,
                 this.position.y + bulletDirection.y * 25,
-                bulletDirection.x * 8,
-                bulletDirection.y * 8,
-                25, // Damage
-                '#8844ff',
+                bulletDirection.x * ENEMY_CONFIG.SNIPER.BULLET_SPEED,
+                bulletDirection.y * ENEMY_CONFIG.SNIPER.BULLET_SPEED,
+                ENEMY_CONFIG.SNIPER.BULLET_DAMAGE, // Damage
+                this.color,
                 4,
                 'enemy'
             );

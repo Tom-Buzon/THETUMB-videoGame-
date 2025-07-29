@@ -1,15 +1,19 @@
-class Shooter {
+import { ENEMY_CONFIG } from '../config.js';
+import { Vector2D } from '../vector2d.js';
+import { Bullet } from '../bullet.js';
+
+export class Shooter {
     constructor(x, y) {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(0, 0);
-        this.size = 18;
-        this.health = 50;
-        this.maxHealth = 50;
-        this.speed = 1.5;
-        this.color = '#44ff44';
+        this.size = ENEMY_CONFIG.SHOOTER.SIZE;
+        this.health = ENEMY_CONFIG.SHOOTER.HEALTH;
+        this.maxHealth = ENEMY_CONFIG.SHOOTER.MAX_HEALTH;
+        this.speed = ENEMY_CONFIG.SHOOTER.SPEED;
+        this.color = ENEMY_CONFIG.SHOOTER.COLOR;
         this.activated = false;
         this.shootCooldown = 0;
-        this.shootRange = 800;
+        this.shootRange = ENEMY_CONFIG.SHOOTER.SHOOT_RANGE;
         this.deathAnimation = 0.0;
         this.isDying = false;
         this.scanlineOffset = 0;
@@ -59,7 +63,7 @@ class Shooter {
         }
 
         if (distanceToPlayer <= this.shootRange && this.shootCooldown <= 0) {
-            this.shootCooldown = 30; // 1 second
+            this.shootCooldown = ENEMY_CONFIG.SHOOTER.SHOOT_COOLDOWN; // 1 second
             
             const direction = new Vector2D(
                 player.position.x - this.position.x,
@@ -69,10 +73,10 @@ class Shooter {
             return new Bullet(
                 this.position.x + direction.x * 25,
                 this.position.y + direction.y * 25,
-                direction.x * 5,
-                direction.y * 5,
-                15, // Damage
-                '#44ff44',
+                direction.x * ENEMY_CONFIG.SHOOTER.BULLET_SPEED,
+                direction.y * ENEMY_CONFIG.SHOOTER.BULLET_SPEED,
+                ENEMY_CONFIG.SHOOTER.BULLET_DAMAGE, // Damage
+                ENEMY_CONFIG.SHOOTER.COLOR,
                 3,
                 'enemy'
             );

@@ -1,4 +1,6 @@
-class ParticleSystem {
+import { PARTICLE_CONFIG } from './config.js';
+
+export class ParticleSystem {
     constructor() {
         this.particles = [];
         this.screenShake = 0;
@@ -9,7 +11,7 @@ class ParticleSystem {
         this.shockwaves = [];
     }
 
-    addExplosion(x, y, color, count, intensity = 1) {
+    addExplosion(x, y, color, count = PARTICLE_CONFIG.EXPLOSION.COUNT, intensity = 1) {
         for (let i = 0; i < count; i++) {
             const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
             const speed = (2 + Math.random() * 3) * intensity;
@@ -19,16 +21,16 @@ class ParticleSystem {
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
                 color: color,
-                life: 30 + Math.random() * 20,
-                maxLife: 30 + Math.random() * 20,
-                size: 2 + Math.random() * 3,
+                life: PARTICLE_CONFIG.EXPLOSION.LIFE + Math.random() * (PARTICLE_CONFIG.EXPLOSION.MAX_LIFE - PARTICLE_CONFIG.EXPLOSION.LIFE),
+                maxLife: PARTICLE_CONFIG.EXPLOSION.MAX_LIFE,
+                size: PARTICLE_CONFIG.EXPLOSION.SIZE.MIN + Math.random() * (PARTICLE_CONFIG.EXPLOSION.SIZE.MAX - PARTICLE_CONFIG.EXPLOSION.SIZE.MIN),
                 type: 'explosion',
                 gravity: 0.1
             });
         }
     }
 
-    addMuzzleFlash(x, y, color, count) {
+    addMuzzleFlash(x, y, color, count = PARTICLE_CONFIG.MUZZLE_FLASH.COUNT) {
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = 1 + Math.random() * 2;
@@ -38,15 +40,15 @@ class ParticleSystem {
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
                 color: color,
-                life: 10,
-                maxLife: 10,
-                size: 1 + Math.random() * 2,
+                life: PARTICLE_CONFIG.MUZZLE_FLASH.LIFE,
+                maxLife: PARTICLE_CONFIG.MUZZLE_FLASH.MAX_LIFE,
+                size: PARTICLE_CONFIG.MUZZLE_FLASH.SIZE.MIN + Math.random() * (PARTICLE_CONFIG.MUZZLE_FLASH.SIZE.MAX - PARTICLE_CONFIG.MUZZLE_FLASH.SIZE.MIN),
                 type: 'muzzle'
             });
         }
     }
 
-    createExplosion(x, y, color, count, radius) {
+    createExplosion(x, y, color, count = PARTICLE_CONFIG.EXPLOSION.COUNT, radius) {
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = 2 + Math.random() * 4;
@@ -57,9 +59,9 @@ class ParticleSystem {
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
                 color: color,
-                life: 40,
-                maxLife: 40,
-                size: 3 + Math.random() * 4,
+                life: PARTICLE_CONFIG.EXPLOSION.LIFE + Math.random() * (PARTICLE_CONFIG.EXPLOSION.MAX_LIFE - PARTICLE_CONFIG.EXPLOSION.LIFE),
+                maxLife: PARTICLE_CONFIG.EXPLOSION.MAX_LIFE,
+                size: PARTICLE_CONFIG.EXPLOSION.SIZE.MIN + Math.random() * (PARTICLE_CONFIG.EXPLOSION.SIZE.MAX - PARTICLE_CONFIG.EXPLOSION.SIZE.MIN),
                 type: 'explosion'
             });
         }
@@ -135,7 +137,7 @@ class ParticleSystem {
     }
 
     addDissolveEffect(x, y, color, size) {
-        for (let i = 0; i < size * 3; i++) {
+        for (let i = 0; i < size * PARTICLE_CONFIG.DISSOLVE_EFFECT.COUNT_MULTIPLIER; i++) {
             const angle = Math.random() * Math.PI * 2;
             const distance = Math.random() * size;
             this.dissolveEffects.push({
@@ -144,15 +146,15 @@ class ParticleSystem {
                 vx: Math.cos(angle) * 0.5,
                 vy: Math.sin(angle) * 0.5,
                 color: color,
-                life: 40 + Math.random() * 20,
-                maxLife: 40 + Math.random() * 20,
-                size: 1 + Math.random() * 2,
+                life: PARTICLE_CONFIG.DISSOLVE_EFFECT.LIFE + Math.random() * (PARTICLE_CONFIG.DISSOLVE_EFFECT.MAX_LIFE - PARTICLE_CONFIG.DISSOLVE_EFFECT.LIFE),
+                maxLife: PARTICLE_CONFIG.DISSOLVE_EFFECT.MAX_LIFE,
+                size: PARTICLE_CONFIG.DISSOLVE_EFFECT.SIZE.MIN + Math.random() * (PARTICLE_CONFIG.DISSOLVE_EFFECT.SIZE.MAX - PARTICLE_CONFIG.DISSOLVE_EFFECT.SIZE.MIN),
                 dissolve: 0
             });
         }
     }
 
-    addImpactSparks(x, y, color, count) {
+    addImpactSparks(x, y, color, count = PARTICLE_CONFIG.IMPACT_SPARKS.COUNT) {
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = 2 + Math.random() * 4;
@@ -162,9 +164,9 @@ class ParticleSystem {
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
                 color: color,
-                life: 15,
-                maxLife: 15,
-                size: 1 + Math.random() * 2,
+                life: PARTICLE_CONFIG.IMPACT_SPARKS.LIFE,
+                maxLife: PARTICLE_CONFIG.IMPACT_SPARKS.MAX_LIFE,
+                size: PARTICLE_CONFIG.IMPACT_SPARKS.SIZE.MIN + Math.random() * (PARTICLE_CONFIG.IMPACT_SPARKS.SIZE.MAX - PARTICLE_CONFIG.IMPACT_SPARKS.SIZE.MIN),
                 type: 'spark'
             });
         }
@@ -177,7 +179,7 @@ class ParticleSystem {
 
     addDeathBurst(x, y, color, size) {
         // Create corpse fade-out effect
-        for (let i = 0; i < size * 2; i++) {
+        for (let i = 0; i < size * PARTICLE_CONFIG.DEATH_BURST.COUNT_MULTIPLIER; i++) {
             const angle = Math.random() * Math.PI * 2;
             const distance = Math.random() * size;
             this.particles.push({
@@ -186,9 +188,9 @@ class ParticleSystem {
                 vx: Math.cos(angle) * 0.3,
                 vy: Math.sin(angle) * 0.3,
                 color: color,
-                life: 60 + Math.random() * 30,
-                maxLife: 60 + Math.random() * 30,
-                size: 1 + Math.random() * 3,
+                life: PARTICLE_CONFIG.DEATH_BURST.LIFE + Math.random() * (PARTICLE_CONFIG.DEATH_BURST.MAX_LIFE - PARTICLE_CONFIG.DEATH_BURST.LIFE),
+                maxLife: PARTICLE_CONFIG.DEATH_BURST.MAX_LIFE,
+                size: PARTICLE_CONFIG.DEATH_BURST.SIZE.MIN + Math.random() * (PARTICLE_CONFIG.DEATH_BURST.SIZE.MAX - PARTICLE_CONFIG.DEATH_BURST.SIZE.MIN),
                 type: 'death',
                 fade: true
             });

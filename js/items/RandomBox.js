@@ -1,11 +1,12 @@
+import { ITEM_CONFIG } from '../config.js';
 
-class RandomBoxItem {
+export class RandomBoxItem {
     constructor(game, x, y) {
         this.game = game;
         this.x = x;
         this.y = y;
-        this.radius = 15;
-        this.color = "#ffff33";
+        this.radius = ITEM_CONFIG.BASE.RADIUS;
+        this.color = ITEM_CONFIG.RANDOM_BOX.COLOR;
     }
 
     update() {}
@@ -23,7 +24,7 @@ class RandomBoxItem {
         }
         
         // Set cooldown
-        this.game.player.setItemCooldown('randomBox', 10000); // 10 seconds cooldown
+        this.game.player.setItemCooldown('randomBox', ITEM_CONFIG.RANDOM_BOX.COOLDOWN); // 10 seconds cooldown
         
         // Add visual feedback
         if (this.game.particleSystem) {
@@ -38,7 +39,7 @@ class RandomBoxItem {
                     vy: Math.sin(angle) * speed,
                     life: 40,
                     decay: 0.92,
-                    color: '#ffff33',
+                    color: ITEM_CONFIG.RANDOM_BOX.COLOR,
                     size: 2 + Math.random() * 2
                 });
             }
@@ -54,7 +55,7 @@ class RandomBoxItem {
             // Positive effects
             () => {
                 // Heal
-                this.game.player.heal(50);
+                this.game.player.heal(ITEM_CONFIG.MEDKIT.HEAL_AMOUNT);
                 if (this.game.particleSystem) {
                     // Add healing particles
                     for (let i = 0; i < 20; i++) {
@@ -67,7 +68,7 @@ class RandomBoxItem {
                             vy: Math.sin(angle) * speed,
                             life: 30,
                             decay: 0.9,
-                            color: '#00ff99',
+                            color: ITEM_CONFIG.MEDKIT.COLOR,
                             size: 2 + Math.random() * 2
                         });
                     }
@@ -75,8 +76,8 @@ class RandomBoxItem {
             },
             () => {
                 // Shield
-                this.game.player.shield = 200;
-                this.game.player.activateItemEffect('shield', 10000);
+                this.game.player.shield = ITEM_CONFIG.SHIELD.SHIELD_AMOUNT;
+                this.game.player.activateItemEffect('shield', ITEM_CONFIG.SHIELD.DURATION);
                 if (this.game.particleSystem) {
                     // Add shield particles
                     for (let i = 0; i < 30; i++) {
@@ -88,7 +89,7 @@ class RandomBoxItem {
                             vy: Math.sin(angle) * 3,
                             life: 60,
                             decay: 0.95,
-                            color: '#66ffff',
+                            color: ITEM_CONFIG.SHIELD.COLOR,
                             size: 3 + Math.random() * 2
                         });
                     }
@@ -98,10 +99,10 @@ class RandomBoxItem {
                 // Speed boost
                 const originalSpeed = this.game.player.speed;
                 this.game.player.speed *= 1.5;
-                this.game.player.activateItemEffect('speedBoost', 5000);
+                this.game.player.activateItemEffect('speedBoost', 5000); // This doesn't have a config value
                 setTimeout(() => {
                     this.game.player.speed = originalSpeed;
-                }, 5000);
+                }, 5000); // This doesn't have a config value
                 if (this.game.particleSystem) {
                     // Add speed boost particles
                     for (let i = 0; i < 25; i++) {
@@ -125,10 +126,10 @@ class RandomBoxItem {
                 // Slow down
                 const originalSpeed = this.game.player.speed;
                 this.game.player.speed *= 0.75;
-                this.game.player.activateItemEffect('slow', 180000); // 180 seconds
+                this.game.player.activateItemEffect('slow', 180000); // 180 seconds - no config value
                 setTimeout(() => {
                     this.game.player.speed = originalSpeed;
-                }, 180000);
+                }, 180000); // 180 seconds - no config value
                 if (this.game.particleSystem) {
                     // Add slow particles
                     for (let i = 0; i < 25; i++) {
@@ -151,10 +152,10 @@ class RandomBoxItem {
                 // Weakness (reduce damage)
                 const originalDamage = this.game.player.weapon.getDamage();
                 this.game.player.weapon.states[this.game.player.weapon.currentState].damage *= 0.5;
-                this.game.player.activateItemEffect('weakness', 60000); // 60 seconds
+                this.game.player.activateItemEffect('weakness', 60000); // 60 seconds - no config value
                 setTimeout(() => {
                     this.game.player.weapon.states[this.game.player.weapon.currentState].damage = originalDamage;
-                }, 60000);
+                }, 60000); // 60 seconds - no config value
                 if (this.game.particleSystem) {
                     // Add weakness particles
                     for (let i = 0; i < 25; i++) {

@@ -1,4 +1,11 @@
-class Game {
+import { PLAYER_CONFIG, ROOM_CONFIG, ENEMY_CONFIG } from './config.js';
+import { Player } from './player.js';
+import { DoomUI } from './ui.js';
+import { ItemManager } from './items/ItemManager.js';
+import { RoomGenerator } from './room.js';
+import { ParticleSystem } from './particles.js';
+
+export class Game {
     constructor() {
         try {
             console.log('Game constructor starting...');
@@ -13,12 +20,13 @@ class Game {
                 throw new Error('Could not get 2D context');
             }
             
-            this.canvas.width = 1400;
-            this.canvas.height = 1000;
+            this.canvas.width = ROOM_CONFIG.CANVAS_WIDTH;
+            this.canvas.height = ROOM_CONFIG.CANVAS_HEIGHT - 60; // Subtract HUD height
             
             console.log('Canvas initialized successfully');
             
-            this.player = new Player(400, 300, this);
+            // Initialize player at the center of the canvas
+            this.player = new Player(this.canvas.width / 2, this.canvas.height / 2, this);
             console.log('Player created');
             
             // Initialize UI
@@ -33,8 +41,8 @@ class Game {
             // Progressive dungeon system
             this.currentDungeon = 1;
             this.currentRoom = 1;
-            this.maxDungeons = 5;
-            this.maxRooms = 3;
+            this.maxDungeons = ROOM_CONFIG.MAX_DUNGEONS;
+            this.maxRooms = ROOM_CONFIG.MAX_ROOMS;
             this.roomGenerator = new RoomGenerator(this.canvas.width, this.canvas.height);
             
             this.enemies = [];
@@ -71,7 +79,9 @@ class Game {
 
     initializeBackground() {
         // Create background stars
-        for (let i = 0; i < 150; i++) {
+        // Using canvas width/height to determine star count for scalability
+        const starCount = Math.floor(this.canvas.width * this.canvas.height / 13000);
+        for (let i = 0; i < starCount; i++) {
             this.backgroundStars.push({
                 x: Math.random() * this.canvas.width,
                 y: Math.random() * this.canvas.height,
@@ -82,7 +92,9 @@ class Game {
         }
         
         // Create dynamic lighting sources
-        for (let i = 0; i < 5; i++) {
+        // Using a fixed count for now, could be made configurable
+        const lightingCount = 5;
+        for (let i = 0; i < lightingCount; i++) {
             this.dynamicLighting.push({
                 x: Math.random() * this.canvas.width,
                 y: Math.random() * this.canvas.height,
@@ -289,7 +301,9 @@ class Game {
                 (enemy.position.x - this.player.position.x) ** 2 +
                 (enemy.position.y - this.player.position.y) ** 2
             );
-            if (distance < 1000) {
+            // Activate enemies within a certain range of the player
+            const ENEMY_ACTIVATION_RANGE = 1000;
+            if (distance < ENEMY_ACTIVATION_RANGE) {
                 enemy.activated = true;
             }
         });

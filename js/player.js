@@ -1,15 +1,18 @@
-// Companion fire rate in milliseconds (lower = faster shooting)
-const COMPANION_FIRE_RATE = 50; // 2 shots per second
+// Import configuration
+import { PLAYER_CONFIG } from './config.js';
+import { Vector2D } from './vector2d.js';
+import { Weapon } from './weapon.js';
+import { Bullet } from './bullet.js';
 
-class Player {
+export class Player {
     constructor(x, y, game) {
         this.position = new Vector2D(x, y);
         this.velocity = new Vector2D(0, 0);
-        this.size = 15;
-        this.health = 500;
-        this.maxHealth = 500;
-        this.speed = 1;
-        this.color = '#00ff00';
+        this.size = PLAYER_CONFIG.SIZE;
+        this.health = PLAYER_CONFIG.INITIAL_HEALTH;
+        this.maxHealth = PLAYER_CONFIG.MAX_HEALTH;
+        this.speed = PLAYER_CONFIG.SPEED;
+        this.color = PLAYER_CONFIG.COLOR;
         this.score = 0;
         this.game = game; // Add game reference
         
@@ -25,15 +28,15 @@ class Player {
         
         // Item effect timers and cooldowns
         this.itemEffects = {
-            shield: { active: false, duration: 0, maxDuration: 10000 }, // 10 seconds
-            ghost: { active: false, duration: 0, maxDuration: 5000 }, // 5 seconds
-            bazooka: { active: false, duration: 0, maxDuration: 15000 }, // 15 seconds
-            ricochet: { active: false, duration: 0, maxDuration: 15000 }, // 15 seconds
-            valkyrie: { active: false, duration: 0, maxDuration: 8000 }, // 8 seconds
-            timeBubble: { active: false, duration: 0, maxDuration: 5000 }, // 5 seconds
-            blackHole: { active: false, duration: 0, maxDuration: 10000 }, // 10 seconds
-            companion: { active: false, duration: 0, maxDuration: 30000 }, // 30 seconds
-            godPlan: { active: false, duration: 0, maxDuration: 20000 } // 20 seconds
+            shield: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.SHIELD.DURATION }, // 10 seconds
+            ghost: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.GHOST.DURATION }, // 5 seconds
+            bazooka: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.BAZOOKA.DURATION }, // 15 seconds
+            ricochet: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.RICOCHET.DURATION }, // 15 seconds
+            valkyrie: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.VALKYRIE.DURATION }, // 8 seconds
+            timeBubble: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.TIME_BUBBLE.DURATION }, // 5 seconds
+            blackHole: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.BLACK_HOLE.DURATION }, // 10 seconds
+            companion: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.COMPANION_ITEM.COOLDOWN }, // 30 seconds
+            godPlan: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.GOD_PLAN.DURATION } // 20 seconds
         };
         
         // Item cooldowns (in milliseconds)
@@ -69,7 +72,7 @@ class Player {
         
         // **CORRECTION : RECUL TOUJOURS ACTIF**
         this.recoilForce = new Vector2D(0, 0);
-        this.friction = 0.85;
+        this.friction = PLAYER_CONFIG.FRICTION;
     }
 
     update(keys) {
@@ -81,7 +84,7 @@ class Player {
         
         // **LIMITES**
         this.position.x = Math.max(this.size, Math.min(1400 - this.size, this.position.x));
-        this.position.y = Math.max(this.size, Math.min(1000 - this.size, this.position.y));
+        this.position.y = Math.max(this.size, Math.min(940 - this.size, this.position.y));
 
         this.velocity = this.velocity.add(this.acceleration);
         this.position = this.position.add(this.velocity);
@@ -89,7 +92,7 @@ class Player {
         const totalMovement = this.velocity.add(this.recoilForce);
     this.position = this.position.add(totalMovement);
 
-    const bounceDamping = 0.9;
+    const bounceDamping = PLAYER_CONFIG.BOUNCE_DAMPING;
 
     if (this.position.x - this.size < 0) {
         this.position.x = this.size;
@@ -339,12 +342,12 @@ class Player {
         if (this.companions.length < 3) {
             const companion = {
                 id: this.companions.length,
-                health: 150,
+                health: PLAYER_CONFIG.COMPANION.COMPANION_HEALTH,
                 angle: this.companionAngle + (this.companions.length * Math.PI * 2 / 3), // Evenly space companions
-                distance: 40, // Distance from player
-                size: 8,
+                distance: PLAYER_CONFIG.COMPANION.COMPANION_DISTANCE, // Distance from player
+                size: PLAYER_CONFIG.COMPANION.COMPANION_SIZE,
                 lastShot: 0,
-                color: '#ff99cc'
+                color: PLAYER_CONFIG.COMPANION.COMPANION_COLOR
             };
             this.companions.push(companion);
         }
@@ -364,7 +367,7 @@ class Player {
             
             // Companions shoot at nearby enemies
             const now = Date.now();
-            if (now - companion.lastShot > COMPANION_FIRE_RATE) { // Use the configurable fire rate
+            if (now - companion.lastShot > PLAYER_CONFIG.COMPANION.FIRE_RATE) { // Use the configurable fire rate
                 // Find nearest enemy
                 let nearestEnemy = null;
                 let nearestDistance = Infinity;
@@ -472,7 +475,7 @@ class Player {
             ctx.save();
             
             // Calculate shield opacity based on remaining shield points
-            const maxShield = 200; // This should match the shield value set in Shield.js
+            const maxShield = PLAYER_CONFIG.ITEM_EFFECTS.SHIELD.MAX_SHIELD; // This should match the shield value set in Shield.js
             const shieldRatio = Math.min(1, this.shield / maxShield);
             const opacity = 0.3 + (0.7 * shieldRatio); // Opacity ranges from 0.3 to 1.0
             
@@ -540,7 +543,7 @@ class Player {
             ctx.fillRect(barX - 1, barY - 1, barWidth + 2, barHeight + 2);
             
             ctx.fillStyle = '#ff0000';
-            ctx.fillRect(barX, barY, barWidth * (companion.health / 150), barHeight);
+            ctx.fillRect(barX, barY, barWidth * (companion.health / PLAYER_CONFIG.COMPANION.COMPANION_HEALTH), barHeight);
         }
          
     }

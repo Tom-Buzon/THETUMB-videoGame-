@@ -1,5 +1,17 @@
+import { ITEM_CONFIG } from '../config.js';
+import { MedkitItem } from './Medkit.js';
+import { ValkyrieItem } from './Valkyrie.js';
+import { ShieldItem } from './Shield.js';
+import { BazookaItem } from './Bazooka.js';
+import { BlackHoleItem } from './BlackHole.js';
+import { CompanionItem } from './Companion.js';
+import { GhostItem } from './Ghost.js';
+import { TimeBubbleItem } from './TimeBubble.js';
+import { GodPlanItem } from './GodPlan.js';
+import { RandomBoxItem } from './RandomBox.js';
+import { RicochetItem } from './Ricochet.js';
 
-class ItemManager {
+export class ItemManager {
     constructor(game) {
         this.game = game;
         this.items = [];
@@ -80,7 +92,7 @@ class ItemManager {
                             vy: Math.sin(angle) * speed,
                             life: 20,
                             decay: 0.9,
-                            color: '#FFFF00', // Yellow particles for collection
+                            color: '#FFFF00', // Yellow particles for collection - no config value
                             size: 2 + Math.random() * 2
                         });
                     }

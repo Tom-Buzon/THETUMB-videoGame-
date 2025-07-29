@@ -1,3 +1,8 @@
+// Import configuration
+import { PLAYER_CONFIG, ROOM_CONFIG } from './config.js';
+// Import Game class
+import { Game } from './game.js';
+
 // Initialize game when page loads
 let game;
 
