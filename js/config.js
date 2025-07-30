@@ -351,11 +351,13 @@ const ROOM_CONFIG = {
   BASE_ITEM_COUNT: 1,
   
   ITEM_RARITY: {
+    //Pour facilement tester un item
     //COMMON: ['Valkyrie'],
     //UNCOMMON: ['Valkyrie'],
     //RARE: ['Valkyrie'],
     //EPIC: ['Valkyrie']
     
+    //classement réel d'items
     COMMON: ['Medkit', 'Ricochet','BlackHole'],
     UNCOMMON: ['Shield', 'Ghost', 'Companion'],
     RARE: ['Bazooka', 'Valkyrie', 'TimeBubble'],
