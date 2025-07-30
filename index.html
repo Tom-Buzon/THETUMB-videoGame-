@@ -7,7 +7,15 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div id="gameContainer">
+    <div id="loadingScreen" class="screen" style="display: flex;">
+        <div class="screen-content">
+            <div class="doom-title">ROGUE DASH DUNGEONS</div>
+            <div class="doom-text">LOADING GAME...</div>
+            <div class="doom-text" id="loadingStatus">Initializing game assets</div>
+        </div>
+    </div>
+    
+    <div id="gameContainer" style="display: none;">
         <div id="hud">
             <div id="hud-left">
                 <div id="health-container">

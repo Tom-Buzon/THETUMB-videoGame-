@@ -11,16 +11,20 @@ body {
     margin: 0;
     padding: 0;
     overflow: hidden;
+    height: 100vh;
 }
 
 #gameContainer {
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
     border: 3px solid #ff0000;
     background: #000;
     box-shadow: 0 0 20px #ff0000;
     width: 1400px;
     height: 1000px;
-    margin: 20px auto;
+    margin: 0;
+    transform-origin: top left;
 }
 
 #gameCanvas {
@@ -240,4 +244,15 @@ body {
     color: #ffaa00;
     text-shadow: 2px 2px 0px #000;
     margin: 10px 0;
+}
+
+/* Loading animation */
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+#loadingStatus {
+    animation: blink 1.5s infinite;
 }

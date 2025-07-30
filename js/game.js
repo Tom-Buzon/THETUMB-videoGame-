@@ -21,14 +21,22 @@ export class Game {
                 throw new Error('Could not get 2D context');
             }
             
+            // Use fixed canvas dimensions as requested
             this.canvas.width = ROOM_CONFIG.CANVAS_WIDTH;
             this.canvas.height = ROOM_CONFIG.CANVAS_HEIGHT - 60; // Subtract HUD height
+            
+            // Initialize scaling factors
+            this.scaleX = 1;
+            this.scaleY = 1;
             
             console.log('Canvas initialized successfully');
             
             // Initialize player at the center of the canvas
             this.player = new Player(this.canvas.width / 2, this.canvas.height / 2, this);
             console.log('Player created');
+            
+            // Calculate initial scaling factors
+            this.calculateScaling();
             
             // Initialize UI
             this.ui = new DoomUI(this.canvas, this.ctx);
@@ -115,6 +123,50 @@ export class Game {
         const colors = ['#ff0044', '#4400ff', '#00ff44', '#ff4400', '#440044'];
         return colors[Math.floor(Math.random() * colors.length)];
     }
+    
+    calculateScaling() {
+        // Get the game container element
+        const container = document.getElementById('gameContainer');
+        if (!container) return;
+        
+        // Get the actual display size of the container
+        const containerRect = container.getBoundingClientRect();
+        
+        // Calculate scaling factors based on CSS transform
+        // This is a simplified approach - in a real implementation, you might need
+        // to parse the actual CSS transform matrix
+        const scaleX = containerRect.width / ROOM_CONFIG.CANVAS_WIDTH;
+        const scaleY = containerRect.height / (ROOM_CONFIG.CANVAS_HEIGHT - 60);
+        
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
+        
+        console.log('Scaling factors:', this.scaleX, 'x', this.scaleY);
+    }
+    
+    // Convert screen coordinates to game coordinates accounting for scaling and positioning
+    screenToGameCoords(screenX, screenY) {
+        // Get the canvas bounding rectangle
+        const rect = this.canvas.getBoundingClientRect();
+        
+        // Calculate the offset caused by CSS transforms
+        // We need to account for both scaling and positioning
+        const offsetX = rect.left;
+        const offsetY = rect.top;
+        
+        // Convert screen coordinates to canvas coordinates
+        let canvasX = screenX - offsetX;
+        let canvasY = screenY - offsetY;
+        
+        // If we have scaling information from the main.js, use it
+        if (this.scaleFactor) {
+            // Adjust for scaling
+            canvasX = canvasX / this.scaleFactor;
+            canvasY = canvasY / this.scaleFactor;
+        }
+        
+        return { x: canvasX, y: canvasY };
+    }
 
     loadRoom() {
         console.log(`Loading Dungeon ${this.currentDungeon}, Room ${this.currentRoom}`);
@@ -198,10 +250,8 @@ export class Game {
         });
         
         this.canvas.addEventListener('mousemove', (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            this.player.setTarget(mouseX, mouseY);
+            const gameCoords = this.screenToGameCoords(e.clientX, e.clientY);
+            this.player.setTarget(gameCoords.x, gameCoords.y);
         });
         
         this.canvas.addEventListener('mousedown', (e) => {
@@ -228,9 +278,9 @@ export class Game {
             // Check if player has bazooka active
             if (this.player.weaponMode === 'BAZOOKA') {
                 // Shoot backward or dash forward
-                const rect = this.canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
+                const gameCoords = this.screenToGameCoords(e.clientX, e.clientY);
+                const mouseX = gameCoords.x;
+                const mouseY = gameCoords.y;
                 
                 // For now, let's implement the dash forward functionality
                 this.player.dashForward();
@@ -246,9 +296,9 @@ export class Game {
     handleCanvasClick(e) {
         // Handle canvas click events
         if (this.isGameOver && this.ui && this.ui.showGameOver) {
-            const rect = this.canvas.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
+            const gameCoords = this.screenToGameCoords(e.clientX, e.clientY);
+            const clickX = gameCoords.x;
+            const clickY = gameCoords.y;
             
             // Check if click is on restart button
             if (this.ui.isClickOnRestartButton(clickX, clickY)) {
@@ -265,6 +315,11 @@ export class Game {
         this.nebulaOffset += 0.2;
         this.scanlineOffset += 0.5;
         this.crtGlow = 0.5 + Math.sin(this.gameTime * 0.01) * 0.3;
+        
+        // Log entity counts periodically for performance monitoring
+        if (this.gameTime % 60 === 0) { // Every 60 frames (about 1 second at 60 FPS)
+            console.log(`Entities - Enemies: ${this.enemies.length}, Bullets: ${this.bullets.length}, Obstacles: ${this.obstacles.length}`);
+        }
         
         // Update UI
         if (this.ui) {
@@ -644,10 +699,22 @@ export class Game {
     }
 
     gameLoop() {
+        // Add performance monitoring
+        const frameStart = performance.now();
+        
         if (!this.isGameOver) {
             this.update();
         }
         this.render();
+        
+        const frameEnd = performance.now();
+        const frameTime = frameEnd - frameStart;
+        
+        // Log frame time if it's too slow (over 33ms = 30 FPS)
+        if (frameTime > 33) {
+            console.warn(`Slow frame: ${frameTime.toFixed(2)}ms`);
+        }
+        
         this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
     }
     
