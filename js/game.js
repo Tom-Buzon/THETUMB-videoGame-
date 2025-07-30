@@ -61,6 +61,9 @@ export class Game {
             
             console.log('Game properties initialized');
             
+            // Initialize timeouts set for tracking
+            this.timeouts = new Set();
+            
             this.initializeBackground();
             console.log('Background initialized');
             
@@ -645,6 +648,19 @@ export class Game {
             this.update();
         }
         this.render();
-        requestAnimationFrame(() => this.gameLoop());
+        this.animationFrameId = requestAnimationFrame(() => this.gameLoop());
+    }
+    
+    // Helper method to manage timeouts
+    setTimeout(callback, delay) {
+        const timeoutId = setTimeout(() => {
+            // Remove the timeout from the set when it completes
+            this.timeouts.delete(timeoutId);
+            callback();
+        }, delay);
+        
+        // Add the timeout to the set
+        this.timeouts.add(timeoutId);
+        return timeoutId;
     }
 }

@@ -60,7 +60,7 @@ export class TimeBubbleItem {
             enemy.speed = enemy.originalSpeed * ITEM_CONFIG.TIME_BUBBLE.SLOW_FACTOR; // 70% slower
             
             // Reset speed after duration
-            setTimeout(() => {
+            this.game.setTimeout(() => {
                 if (enemy.speed === enemy.originalSpeed * ITEM_CONFIG.TIME_BUBBLE.SLOW_FACTOR) {
                     enemy.speed = enemy.originalSpeed;
                 }

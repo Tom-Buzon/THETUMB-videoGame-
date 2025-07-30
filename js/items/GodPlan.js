@@ -109,7 +109,7 @@ export class GodPlanItem {
         }
         
         // Remove invincibility after duration
-        setTimeout(() => {
+        this.game.setTimeout(() => {
             this.game.player.invincible = false;
         }, ITEM_CONFIG.GOD_PLAN.DURATION);
     }

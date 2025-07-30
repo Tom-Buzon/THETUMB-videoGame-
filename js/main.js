@@ -33,6 +33,14 @@ function restartGame() {
         if (game.player && game.player.shootInterval) {
             clearInterval(game.player.shootInterval);
         }
+        
+        // Clear any pending timeouts in the game
+        if (game.timeouts) {
+            for (const timeoutId of game.timeouts) {
+                clearTimeout(timeoutId);
+            }
+            game.timeouts.clear();
+        }
     }
     
     // Remove any existing canvas content

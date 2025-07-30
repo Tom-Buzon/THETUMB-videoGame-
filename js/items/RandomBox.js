@@ -102,7 +102,7 @@ export class RandomBoxItem {
                 const originalSpeed = this.game.player.speed;
                 this.game.player.speed *= 1.5;
                 this.game.player.activateItemEffect('speedBoost', 5000); // This doesn't have a config value
-                setTimeout(() => {
+                this.game.setTimeout(() => {
                     this.game.player.speed = originalSpeed;
                 }, 5000); // This doesn't have a config value
                 if (this.game.particleSystem) {
@@ -129,7 +129,7 @@ export class RandomBoxItem {
                 const originalSpeed = this.game.player.speed;
                 this.game.player.speed *= 0.75;
                 this.game.player.activateItemEffect('slow', 180000); // 180 seconds - no config value
-                setTimeout(() => {
+                this.game.setTimeout(() => {
                     this.game.player.speed = originalSpeed;
                 }, 180000); // 180 seconds - no config value
                 if (this.game.particleSystem) {
@@ -155,7 +155,7 @@ export class RandomBoxItem {
                 const originalDamage = this.game.player.weapon.getDamage();
                 this.game.player.weapon.states[this.game.player.weapon.currentState].damage *= 0.5;
                 this.game.player.activateItemEffect('weakness', 60000); // 60 seconds - no config value
-                setTimeout(() => {
+                this.game.setTimeout(() => {
                     this.game.player.weapon.states[this.game.player.weapon.currentState].damage = originalDamage;
                 }, 60000); // 60 seconds - no config value
                 if (this.game.particleSystem) {

@@ -377,7 +377,7 @@ export class ValkyrieItem {
         }
         
         // Remove invincibility after duration
-        setTimeout(() => {
+        this.game.setTimeout(() => {
             this.game.player.invincible = false;
         }, 3500);
     }
