@@ -9,6 +9,7 @@ export class ParticleSystem {
         this.energyDrains = [];
         this.debris = [];
         this.shockwaves = [];
+        this.damageNumbers = [];
     }
 
     addExplosion(x, y, color, count = PARTICLE_CONFIG.EXPLOSION.COUNT, intensity = 1) {
@@ -176,6 +177,18 @@ export class ParticleSystem {
         // Add a generic particle with custom properties
         this.particles.push(particle);
     }
+    
+    addDamageNumber(x, y, damage, color = '#ffffff') {
+        this.damageNumbers.push({
+            x: x,
+            y: y,
+            damage: damage,
+            color: color,
+            life: 60, // 60 frames = 1 second at 60 FPS
+            maxLife: 60,
+            vy: -1 // Float upward
+        });
+    }
 
     addDeathBurst(x, y, color, size) {
         // Create corpse fade-out effect
@@ -301,6 +314,17 @@ export class ParticleSystem {
         if (this.flashIntensity > 0) {
             this.flashIntensity *= 0.9;
         }
+        
+        // Update damage numbers
+        for (let i = this.damageNumbers.length - 1; i >= 0; i--) {
+            const number = this.damageNumbers[i];
+            number.y += number.vy;
+            number.life--;
+            
+            if (number.life <= 0) {
+                this.damageNumbers.splice(i, 1);
+            }
+        }
     }
 
     render(ctx) {
@@ -393,6 +417,22 @@ export class ParticleSystem {
                 ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
                 ctx.fill();
             });
+        
+        // Render damage numbers
+        this.damageNumbers.forEach(number => {
+            const alpha = number.life / number.maxLife;
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = number.color;
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Add glow effect
+            ctx.shadowColor = number.color;
+            ctx.shadowBlur = 10;
+            ctx.fillText(number.damage.toString(), number.x, number.y);
+            ctx.shadowBlur = 0;
+        });
         });
         
         // Render dissolve effects

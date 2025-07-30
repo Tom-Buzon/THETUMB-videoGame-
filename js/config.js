@@ -102,7 +102,7 @@ const WEAPON_CONFIG = {
       NAME: 'BURST RIFLE',
       HP_RANGE: [50, 74],
       FIRE_RATE: 300, // milliseconds
-      DAMAGE: 25,
+      DAMAGE: 35,
       RECOIL_MULT: 0.5,
       COLOR: '#ffff00'
     },
@@ -111,26 +111,28 @@ const WEAPON_CONFIG = {
       HP_RANGE: [25, 49],
       FIRE_RATE: 600, // milliseconds
       DAMAGE: 80,
-      RECOIL_MULT: 0.7,
+      RECOIL_MULT: 0.6,
       COLOR: '#ff6600'
     },
     SINGLE: {
-      NAME: 'SINGLE SHOT',
-      HP_RANGE: [11, 24],
-      FIRE_RATE: 1200, // milliseconds
-      DAMAGE: 200,
-      RECOIL_MULT: 0.9,
-      COLOR: '#ff0000'
+        NAME: 'SINGLE SHOT',
+        HP_RANGE: [11, 24],
+        FIRE_RATE: 1200, // milliseconds
+        DAMAGE: 200,
+        RECOIL_MULT: 0.7,
+        COLOR: '#ff0000'
     },
     LASER: {
-      NAME: 'LASER',
-      HP_RANGE: [1, 10],
-      FIRE_RATE: 1200, // milliseconds
-      DAMAGE: 800,
-      RECOIL_MULT: 1,
-      COLOR: '#ff0000'
+        NAME: 'LASER',
+        HP_RANGE: [0, 10],
+        FIRE_RATE: 4000, // milliseconds (4 seconds cooldown)
+        DAMAGE: 100, // Damage per frame
+        RECOIL_MULT: 0.9,
+        COLOR: '#ff0000',
+        DURATION: 1500, // milliseconds (1.5 seconds)
+        COOLDOWN: 5000 // milliseconds (5 seconds)
     }
-  }
+}
 };
 
 // Bullet Configuration
@@ -352,16 +354,16 @@ const ROOM_CONFIG = {
   
   ITEM_RARITY: {
     //Pour facilement tester un item
-    COMMON: ['Ricochet'],
-    UNCOMMON: ['Ricochet'],
-    RARE: ['Ricochet'],
-    EPIC: ['Ricochet']
+    //COMMON: ['Ricochet'],
+    //UNCOMMON: ['Ricochet'],
+    //RARE: ['Ricochet'],
+    //EPIC: ['Ricochet']
     
     //classement réel d'items
-    //COMMON: ['Medkit', 'Ricochet','BlackHole'],
-    //UNCOMMON: ['Shield', 'Ghost', 'Companion'],
-    //RARE: ['Bazooka', 'Valkyrie', 'TimeBubble'],
-    //EPIC: ['GodPlan', 'RandomBox']
+    COMMON: ['Medkit', 'Ricochet','BlackHole'],
+    UNCOMMON: ['Shield', 'Ghost', 'Companion'],
+    RARE: ['Bazooka', 'Valkyrie', 'TimeBubble'],
+    EPIC: ['GodPlan', 'RandomBox']
   }
 };
 

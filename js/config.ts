@@ -114,22 +114,14 @@ export const WEAPON_CONFIG = {
       COLOR: '#ff6600'
     },
     SINGLE: {
-      NAME: 'SINGLE SHOT',
-      HP_RANGE: [11, 24] as [number, number],
-      FIRE_RATE: 1200, // milliseconds
-      DAMAGE: 200,
-      RECOIL_MULT: 0.9,
-      COLOR: '#ff0000'
-    },
-    LASER: {
-      NAME: 'LASER',
-      HP_RANGE: [1, 10] as [number, number],
-      FIRE_RATE: 1200, // milliseconds
-      DAMAGE: 800,
-      RECOIL_MULT: 1,
-      COLOR: '#ff0000'
+        NAME: 'SINGLE SHOT',
+        HP_RANGE: [11, 24] as [number, number],
+        FIRE_RATE: 1200, // milliseconds
+        DAMAGE: 200,
+        RECOIL_MULT: 0.9,
+        COLOR: '#ff0000'
     }
-  }
+}
 };
 
 // Bullet Configuration

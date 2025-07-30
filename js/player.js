@@ -11,7 +11,7 @@ export class Player {
         this.size = PLAYER_CONFIG.SIZE;
         this.health = PLAYER_CONFIG.INITIAL_HEALTH;
         this.maxHealth = PLAYER_CONFIG.MAX_HEALTH;
-        console.log(`Player initialized with health: ${this.health}/${this.maxHealth}`);
+        //console.log(`Player initialized with health: ${this.health}/${this.maxHealth}`);
         this.speed = PLAYER_CONFIG.SPEED;
         this.color = PLAYER_CONFIG.COLOR;
         this.score = 0;
@@ -175,7 +175,7 @@ export class Player {
         if (this.weaponMode === 'BAZOOKA') {
             // For bazooka, we might want to create a special bullet or handle it differently
             // For now, we'll just use the normal shooting mechanism
-            const bullet = this.weapon.shoot(this.position.x, this.position.y, direction);
+            const bullet = this.weapon.shoot(this.position.x, this.position.y, direction, this);
             
             if (bullet) {
                 // **CALCUL DU RECUL CORRIGÉ**
@@ -196,7 +196,7 @@ export class Player {
                 return bullet;
             }
         } else {
-            const bullet = this.weapon.shoot(this.position.x, this.position.y, direction);
+            const bullet = this.weapon.shoot(this.position.x, this.position.y, direction, this);
             
             if (bullet) {
                 // **CALCUL DU RECUL CORRIGÉ**
@@ -206,7 +206,7 @@ export class Player {
                 
                 // If ricochet effect is active, modify bullet to bounce
                 if (this.itemEffects.ricochet.active) {
-                    console.log("Ricochet effect is active, modifying bullet");
+                    //console.log("Ricochet effect is active, modifying bullet");
                     // Add bounce properties to bullet
                     bullet.bounceCount = 0;
                     bullet.maxBounces = 3;
@@ -220,7 +220,7 @@ export class Player {
                         
                         // Check wall collisions for bouncing
                         if (this.position.x - this.size < 0 || this.position.x + this.size > 1400) {
-                            console.log("Bullet hit wall, bouncing");
+                            //console.log("Bullet hit wall, bouncing");
                             if (this.bounceCount < this.maxBounces) {
                                 this.velocity.x = -this.velocity.x;
                                 this.bounceCount++;
@@ -254,10 +254,10 @@ export class Player {
                         // Check obstacle collisions for bouncing
                         if (this.game && this.game.obstacles) {
                             for (const obstacle of this.game.obstacles) {
-                                console.log("Checking obstacle collision");
+                                //console.log("Checking obstacle collision");
                                 if (obstacle.checkCollision(this)) {
                                     if (this.bounceCount < this.maxBounces) {
-                                    console.log("Bullet hit obstacle, bouncing");
+                                    //console.log("Bullet hit obstacle, bouncing");
                                         // Calculate bounce direction based on which side of the obstacle was hit
                                         // We need to determine which side of the obstacle was hit
                                         // For rectangular obstacles, we can check the relative position
@@ -365,7 +365,7 @@ export class Player {
         
         // Apply remaining damage to health
         this.health = Math.max(0, this.health - amount);
-        console.log(`Player health after damage: ${this.health}`);
+        //console.log(`Player health after damage: ${this.health}`);
         
         // **FLASH ROUGE QUAND TOUCHÉ**
         const flash = document.createElement('div');
@@ -466,7 +466,7 @@ export class Player {
     expandCanvasTemporarily() {
         // Implementation for temporarily expanding the canvas
         // This could be used for the GodPlan item effect
-        console.log("Canvas expanded temporarily!");
+        //console.log("Canvas expanded temporarily!");
     }
     
     addScore(points) {
@@ -480,9 +480,9 @@ export class Player {
     }
 
     heal(amount) {
-        console.log(`Player healing ${amount} points. Current health: ${this.health}`);
+        //console.log(`Player healing ${amount} points. Current health: ${this.health}`);
         this.health = Math.min(this.maxHealth, this.health + amount);
-        console.log(`Player health after healing: ${this.health}`);
+        //console.log(`Player health after healing: ${this.health}`);
     }
 
     setTarget(x, y) {
@@ -715,4 +715,5 @@ export class Player {
             this.shootInterval = null;
         }
     }
+    
 }

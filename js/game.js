@@ -379,6 +379,9 @@ export class Game {
         // Update weapon state based on player health
         this.player.weapon.updateState(this.player.health, this.player.maxHealth);
         
+        // Update laser weapon if active
+        this.player.weapon.updateLaser(this.player, this.enemies);
+        
         // Update death animations
         this.deathAnimationSystem.update();
         
@@ -592,6 +595,15 @@ export class Game {
         this.bullets.forEach(bullet => bullet.render(this.ctx));
         this.player.render(this.ctx);
         this.particleSystem.render(this.ctx);
+        
+        // Render laser if active
+        if (this.player.weapon.laserActive) {
+            this.player.weapon.renderLaser(
+                this.ctx,
+                this.player.position.x,
+                this.player.position.y
+            );
+        }
         
         // **GLITCH EFFECT**
         if (Math.random() < 0.001) {

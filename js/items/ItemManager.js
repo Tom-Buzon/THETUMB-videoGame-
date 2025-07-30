@@ -53,6 +53,7 @@ export class ItemManager {
             case 'Ricochet':
                 item = new RicochetItem(this.game, x, y);
                 break;
+
         }
         if (item) {
             this.items.push(item);
