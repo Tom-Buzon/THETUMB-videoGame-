@@ -206,6 +206,7 @@ export class Player {
                 
                 // If ricochet effect is active, modify bullet to bounce
                 if (this.itemEffects.ricochet.active) {
+                    console.log("Ricochet effect is active, modifying bullet");
                     // Add bounce properties to bullet
                     bullet.bounceCount = 0;
                     bullet.maxBounces = 3;
@@ -218,14 +219,15 @@ export class Player {
                         if (expired) return true;
                         
                         // Check wall collisions for bouncing
-                        if (this.x - this.size < 0 || this.x + this.size > 1400) {
+                        if (this.position.x - this.size < 0 || this.position.x + this.size > 1400) {
+                            console.log("Bullet hit wall, bouncing");
                             if (this.bounceCount < this.maxBounces) {
-                                this.vx = -this.vx;
+                                this.velocity.x = -this.velocity.x;
                                 this.bounceCount++;
                                 
                                 // Add bounce effect
                                 if (this.game && this.game.particleSystem) {
-                                    this.game.particleSystem.addImpactSparks(this.x, this.y, this.color, 3);
+                                    this.game.particleSystem.addImpactSparks(this.position.x, this.position.y, this.color, 3);
                                 }
                                 
                                 return false; // Continue bullet
@@ -233,19 +235,65 @@ export class Player {
                                 return true; // Expire bullet
                             }
                         }
-                        if (this.y - this.size < 0 || this.y + this.size > 1000) {
+                        if (this.position.y - this.size < 0 || this.position.y + this.size > 1000) {
                             if (this.bounceCount < this.maxBounces) {
-                                this.vy = -this.vy;
+                                this.velocity.y = -this.velocity.y;
                                 this.bounceCount++;
                                 
                                 // Add bounce effect
                                 if (this.game && this.game.particleSystem) {
-                                    this.game.particleSystem.addImpactSparks(this.x, this.y, this.color, 3);
+                                    this.game.particleSystem.addImpactSparks(this.position.x, this.position.y, this.color, 3);
                                 }
                                 
                                 return false; // Continue bullet
                             } else {
                                 return true; // Expire bullet
+                            }
+                        }
+                        
+                        // Check obstacle collisions for bouncing
+                        if (this.game && this.game.obstacles) {
+                            for (const obstacle of this.game.obstacles) {
+                                console.log("Checking obstacle collision");
+                                if (obstacle.checkCollision(this)) {
+                                    if (this.bounceCount < this.maxBounces) {
+                                    console.log("Bullet hit obstacle, bouncing");
+                                        // Calculate bounce direction based on which side of the obstacle was hit
+                                        // We need to determine which side of the obstacle was hit
+                                        // For rectangular obstacles, we can check the relative position
+                                        // of the bullet to the obstacle's center
+                                        const obstacleCenterX = obstacle.x + obstacle.width / 2;
+                                        const obstacleCenterY = obstacle.y + obstacle.height / 2;
+                                        
+                                        // Calculate the difference between bullet position and obstacle center
+                                        const dx = this.position.x - obstacleCenterX;
+                                        const dy = this.position.y - obstacleCenterY;
+                                        
+                                        // Determine which side was hit based on the direction vector
+                                        // If the absolute value of dx is greater than dy, it's a horizontal collision
+                                        // If the absolute value of dy is greater than dx, it's a vertical collision
+                                        if (Math.abs(dx) > Math.abs(dy)) {
+                                            // Horizontal collision (left or right side)
+                                            this.velocity.x = -this.velocity.x;
+                                        } else {
+                                            // Vertical collision (top or bottom side)
+                                            this.velocity.y = -this.velocity.y;
+                                        }
+                                        
+                                        this.bounceCount++;
+                                        
+                                        // Add bounce effect
+                                        if (this.game && this.game.particleSystem) {
+                                            this.game.particleSystem.addImpactSparks(this.position.x, this.position.y, this.color, 3);
+                                        }
+                                        
+                                        // Return a special value to indicate that the bullet should bounce
+                                        // This will be checked in the game's update method
+                                        return "bounce"; // Continue bullet with bounce
+                                    } else {
+                                        return true; // Expire bullet
+                                    }
+                                }
                             }
                         }
                         

@@ -26,12 +26,11 @@ export class RicochetItem {
         }
         
         // Activate ricochet effect on player
-        this.game.player.weaponMode = 'RICOCHET';
         // Show weapon change message
         if (this.game.ui) {
             this.game.ui.showWeaponChangeMessage('RICOCHET');
         }
-        this.game.player.activateItemEffect('ricochet', ITEM_CONFIG.RICOCHET.DURATION); // 15 seconds
+        this.game.player.activateItemEffect('ricochet', ITEM_CONFIG.RICOCHET.DURATION); // 10 seconds
         
         // Set cooldown
         this.game.player.setItemCooldown('ricochet', ITEM_CONFIG.RICOCHET.COOLDOWN); // 30 seconds cooldown

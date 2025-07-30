@@ -428,8 +428,9 @@ export class Game {
         
         // Update bullets
         this.bullets = this.bullets.filter(bullet => {
-            const expired = bullet.update();
-            if (expired) return false;
+            const updateResult = bullet.update();
+            if (updateResult === true) return false; // Expired bullet
+            if (updateResult === "bounce") return true; // Ricochet bullet that should continue
             
             // Check collision with healer protection fields
             for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -527,8 +528,19 @@ export class Game {
             // Check collision with obstacles
             for (const obstacle of this.obstacles) {
                 if (obstacle.checkCollision(bullet)) {
-                    bullet.addImpactSparks(bullet.position.x, bullet.position.y);
-                    return false;
+                    // Check if this is a ricochet bullet that should bounce
+                    if (bullet.bounceCount !== undefined && bullet.maxBounces !== undefined) {
+                        // Let the ricochet effect handle the collision
+                        // The bullet's update method will return "bounce" if it should continue
+                        // We've already handled that case above (lines 431-433)
+                        // So we don't need to do anything here
+                    } else {
+                        // Normal bullet, remove it
+                        bullet.addImpactSparks(bullet.position.x, bullet.position.y);
+                        return false;
+                    }
+                   // bullet.addImpactSparks(bullet.position.x, bullet.position.y);
+                    //return false;
                 }
             }
             

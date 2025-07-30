@@ -352,16 +352,16 @@ const ROOM_CONFIG = {
   
   ITEM_RARITY: {
     //Pour facilement tester un item
-    //COMMON: ['Valkyrie'],
-    //UNCOMMON: ['Valkyrie'],
-    //RARE: ['Valkyrie'],
-    //EPIC: ['Valkyrie']
+    COMMON: ['Ricochet'],
+    UNCOMMON: ['Ricochet'],
+    RARE: ['Ricochet'],
+    EPIC: ['Ricochet']
     
     //classement réel d'items
-    COMMON: ['Medkit', 'Ricochet','BlackHole'],
-    UNCOMMON: ['Shield', 'Ghost', 'Companion'],
-    RARE: ['Bazooka', 'Valkyrie', 'TimeBubble'],
-    EPIC: ['GodPlan', 'RandomBox']
+    //COMMON: ['Medkit', 'Ricochet','BlackHole'],
+    //UNCOMMON: ['Shield', 'Ghost', 'Companion'],
+    //RARE: ['Bazooka', 'Valkyrie', 'TimeBubble'],
+    //EPIC: ['GodPlan', 'RandomBox']
   }
 };
 
