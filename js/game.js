@@ -9,7 +9,7 @@ import { DeathAnimationSystem } from './DeathAnimationSystem.js';
 export class Game {
     constructor() {
         try {
-            console.log('Game constructor starting...');
+            // Game constructor starting...
             
             this.canvas = document.getElementById('gameCanvas');
             if (!this.canvas) {
@@ -29,11 +29,15 @@ export class Game {
             this.scaleX = 1;
             this.scaleY = 1;
             
-            console.log('Canvas initialized successfully');
+            // Canvas initialized successfully
             
             // Initialize player at the center of the canvas
             this.player = new Player(this.canvas.width / 2, this.canvas.height / 2, this);
-            console.log('Player created');
+            // Player created
+            
+            // Initialize game state
+            this._isGameOver = false;
+            // Game state initialized. Game over state: this._isGameOver
             
             // Calculate initial scaling factors
             this.calculateScaling();
@@ -41,11 +45,15 @@ export class Game {
             // Initialize UI
             this.ui = new DoomUI(this.canvas, this.ctx);
             this.ui.setGame(this);
-            console.log('UI created');
+            // Reset UI state to ensure clean start
+            if (this.ui.reset) {
+                this.ui.reset();
+            }
+            // UI created
             
             // Initialize ItemManager
             this.itemManager = new ItemManager(this);
-            console.log('ItemManager created');
+            // ItemManager created
             
             // Progressive dungeon system
             this.currentDungeon = 1;
@@ -67,22 +75,22 @@ export class Game {
             this.backgroundStars = [];
             this.glitchEffect = 0;
             
-            console.log('Game properties initialized');
+            // Game properties initialized
             
             // Initialize timeouts set for tracking
             this.timeouts = new Set();
             
             this.initializeBackground();
-            console.log('Background initialized');
+            // Background initialized
             
             this.loadRoom();
-            console.log('First room loaded');
+            // First room loaded
             
             this.keys = {};
             this.setupEventListeners();
-            console.log('Event listeners set up');
+            // Event listeners set up
             
-            console.log('Game constructor completed successfully');
+            // Game constructor completed successfully
             
         } catch (error) {
             console.error('Error in Game constructor:', error);
@@ -141,7 +149,7 @@ export class Game {
         this.scaleX = scaleX;
         this.scaleY = scaleY;
         
-        console.log('Scaling factors:', this.scaleX, 'x', this.scaleY);
+        // Scaling factors: this.scaleX x this.scaleY
     }
     
     // Convert screen coordinates to game coordinates accounting for scaling and positioning
@@ -169,7 +177,7 @@ export class Game {
     }
 
     loadRoom() {
-        console.log(`Loading Dungeon ${this.currentDungeon}, Room ${this.currentRoom}`);
+        // Loading Dungeon this.currentDungeon, Room this.currentRoom
         
         // Clear existing entities
         this.enemies = [];
@@ -181,9 +189,9 @@ export class Game {
         this.obstacles = this.roomGenerator.generateObstacles(this.currentDungeon, this.currentRoom);
         
         // DIAGNOSTIC: Check obstacle types
-        console.log('Obstacles loaded:', this.obstacles);
-        console.log('First obstacle type:', this.obstacles.length > 0 ? typeof this.obstacles[0].update : 'No obstacles');
-        console.log('First obstacle constructor:', this.obstacles.length > 0 ? this.obstacles[0].constructor.name : 'No obstacles');
+        // Obstacles loaded: this.obstacles
+        // First obstacle type: this.obstacles.length > 0 ? typeof this.obstacles[0].update : 'No obstacles'
+        // First obstacle constructor: this.obstacles.length > 0 ? this.obstacles[0].constructor.name : 'No obstacles'
         
         // Update boundary colors for boss rooms
         const boundaryColor = this.currentRoom === 3 ? '#ff0000' : '#00ff00';
@@ -202,7 +210,7 @@ export class Game {
             this.ui.showRoomChangeMessage(this.currentDungeon, this.currentRoom);
         }
         
-        console.log(`Room loaded: ${this.enemies.length} enemies, ${this.obstacles.length} obstacles`);
+        // Room loaded: this.enemies.length enemies, this.obstacles.length obstacles
     }
 
     updateBoundaryColors(color) {
@@ -217,7 +225,7 @@ export class Game {
     checkRoomCompletion() {
         // Check if all enemies are defeated
         if (this.enemies.length === 0) {
-            console.log(`Room ${this.currentRoom} of Dungeon ${this.currentDungeon} completed!`);
+            // Room this.currentRoom of Dungeon this.currentDungeon completed!
             
             // Progress to next room or dungeon
             if (this.currentRoom < this.maxRooms) {
@@ -229,7 +237,7 @@ export class Game {
                 this.currentRoom = 1;
             } else {
                 // Game completed
-                console.log('All dungeons completed! Victory!');
+                // All dungeons completed! Victory!
                 return true;
             }
             
@@ -241,38 +249,37 @@ export class Game {
     }
 
     setupEventListeners() {
-        document.addEventListener('keydown', (e) => {
+        // Store references to event listener functions so we can remove them later
+        this.keydownHandler = (e) => {
             this.keys[e.code] = true;
-        });
+        };
         
-        document.addEventListener('keyup', (e) => {
+        this.keyupHandler = (e) => {
             this.keys[e.code] = false;
-        });
+        };
         
-        this.canvas.addEventListener('mousemove', (e) => {
+        this.mousemoveHandler = (e) => {
             const gameCoords = this.screenToGameCoords(e.clientX, e.clientY);
             this.player.setTarget(gameCoords.x, gameCoords.y);
-        });
+        };
         
-        this.canvas.addEventListener('mousedown', (e) => {
+        this.mousedownHandler = (e) => {
             if (e.button === 0) { // Left mouse button
                 this.player.startShooting();
             }
-        });
+        };
         
-        this.canvas.addEventListener('mouseup', (e) => {
+        this.mouseupHandler = (e) => {
             if (e.button === 0) { // Left mouse button
                 this.player.stopShooting();
             }
-        });
+        };
         
-        // Also handle mouse leaving the canvas
-        this.canvas.addEventListener('mouseleave', () => {
+        this.mouseleaveHandler = () => {
             this.player.stopShooting();
-        });
+        };
         
-        // Add right-click event listener for bazooka
-        this.canvas.addEventListener('contextmenu', (e) => {
+        this.contextmenuHandler = (e) => {
             e.preventDefault(); // Prevent context menu from appearing
             
             // Check if player has bazooka active
@@ -285,15 +292,40 @@ export class Game {
                 // For now, let's implement the dash forward functionality
                 this.player.dashForward();
             }
-        });
+        };
         
-        // Add click event listener for UI interactions
-        this.canvas.addEventListener('click', (e) => {
+        this.clickHandler = (e) => {
             this.handleCanvasClick(e);
-        });
+        };
+        
+        // Add event listeners
+        document.addEventListener('keydown', this.keydownHandler);
+        document.addEventListener('keyup', this.keyupHandler);
+        this.canvas.addEventListener('mousemove', this.mousemoveHandler);
+        this.canvas.addEventListener('mousedown', this.mousedownHandler);
+        this.canvas.addEventListener('mouseup', this.mouseupHandler);
+        this.canvas.addEventListener('mouseleave', this.mouseleaveHandler);
+        this.canvas.addEventListener('contextmenu', this.contextmenuHandler);
+        this.canvas.addEventListener('click', this.clickHandler);
+    }
+    
+    // Method to remove event listeners
+    removeEventListeners() {
+        if (this.canvas) {
+            // Remove event listeners
+            document.removeEventListener('keydown', this.keydownHandler);
+            document.removeEventListener('keyup', this.keyupHandler);
+            this.canvas.removeEventListener('mousemove', this.mousemoveHandler);
+            this.canvas.removeEventListener('mousedown', this.mousedownHandler);
+            this.canvas.removeEventListener('mouseup', this.mouseupHandler);
+            this.canvas.removeEventListener('mouseleave', this.mouseleaveHandler);
+            this.canvas.removeEventListener('contextmenu', this.contextmenuHandler);
+            this.canvas.removeEventListener('click', this.clickHandler);
+        }
     }
     
     handleCanvasClick(e) {
+        // Handle canvas click events
         // Handle canvas click events
         if (this.isGameOver && this.ui && this.ui.showGameOver) {
             const gameCoords = this.screenToGameCoords(e.clientX, e.clientY);
@@ -729,5 +761,19 @@ export class Game {
         // Add the timeout to the set
         this.timeouts.add(timeoutId);
         return timeoutId;
+    }
+    
+    // Getter and setter for isGameOver property
+    get isGameOver() {
+        //console.log('Getting game over state:', this._isGameOver);
+        return this._isGameOver;
+    }
+    
+    set isGameOver(value) {
+        //console.log('Setting game over state to:', value);
+        if (value === true) {
+            //console.trace('Game over state being set to true');
+        }
+        this._isGameOver = value;
     }
 }

@@ -2,10 +2,12 @@ import { UI_CONFIG } from './config.js';
 
 export class DoomUI {
     constructor(canvas, ctx) {
+        console.log('Creating new DoomUI instance');
         this.canvas = canvas;
         this.ctx = ctx;
         this.game = null;
         this.messages = [];
+        this._showGameOver = false;
         this.timer = 0;
         this.score = 0;
         this.combo = 0;
@@ -320,14 +322,47 @@ export class DoomUI {
     
     isClickOnRestartButton(x, y) {
         // Check if the click coordinates are within the restart button bounds
+        console.log('Checking if click is on restart button at', x, y);
+        console.log('Restart button position:', this.restartButton);
         if (this.restartButton) {
-            return (
+            const isOnButton = (
                 x >= this.restartButton.x &&
                 x <= this.restartButton.x + this.restartButton.width &&
                 y >= this.restartButton.y &&
                 y <= this.restartButton.y + this.restartButton.height
             );
+            console.log('Is click on restart button:', isOnButton);
+            return isOnButton;
         }
+        console.log('No restart button position stored');
         return false;
+    }
+    
+    // Method to reset UI state, including clearing the restart button position
+    reset() {
+        console.log('Resetting UI state');
+        console.log('Restart button position before reset:', this.restartButton);
+        this.restartButton = undefined;
+        this.showGameOver = false;
+        console.log('UI state reset complete');
+        // Reset other UI states as needed
+    }
+    
+    // Override setter for showGameOver to track when it's being set
+    set showGameOverState(value) {
+       // console.log('Setting UI showGameOver state to:', value);
+        if (value === true) {
+        //    console.trace('UI showGameOver state being set to true');
+        }
+        this._showGameOver = value;
+    }
+    
+    get showGameOver() {
+        //console.log('Getting UI showGameOver state:', this._showGameOver);
+        return this._showGameOver;
+    }
+    
+    set showGameOver(value) {
+        this.showGameOverState = value;
     }
 }

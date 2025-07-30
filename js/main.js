@@ -83,6 +83,11 @@ function restartGame() {
             }
             game.timeouts.clear();
         }
+        
+        // Remove event listeners
+        if (game.removeEventListeners) {
+            game.removeEventListeners();
+        }
     }
     
     // Remove any existing canvas content
@@ -94,6 +99,8 @@ function restartGame() {
     
     // Reset game variable
     game = null;
+    // Clear global game reference
+    window.game = null;
     
     // Reinitialize the game after a short delay to allow UI to update
     setTimeout(() => {

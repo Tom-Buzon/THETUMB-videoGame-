@@ -11,6 +11,7 @@ export class Player {
         this.size = PLAYER_CONFIG.SIZE;
         this.health = PLAYER_CONFIG.INITIAL_HEALTH;
         this.maxHealth = PLAYER_CONFIG.MAX_HEALTH;
+        console.log(`Player initialized with health: ${this.health}/${this.maxHealth}`);
         this.speed = PLAYER_CONFIG.SPEED;
         this.color = PLAYER_CONFIG.COLOR;
         this.score = 0;
@@ -296,8 +297,10 @@ export class Player {
     }
 
     takeDamage(amount, source = 'unknown') {
+        console.log(`Player taking ${amount} damage from ${source}. Current health: ${this.health}`);
         // If player is invincible or in ghost mode, take no damage
         if (this.invincible || this.ghost) {
+            console.log('Player is invincible or in ghost mode, taking no damage');
             return;
         }
         
@@ -314,7 +317,7 @@ export class Player {
         
         // Apply remaining damage to health
         this.health = Math.max(0, this.health - amount);
-        //console.log(`Player took ${amount} damage from ${source}`);
+        console.log(`Player health after damage: ${this.health}`);
         
         // **FLASH ROUGE QUAND TOUCHÉ**
         const flash = document.createElement('div');
@@ -332,8 +335,8 @@ export class Player {
         setTimeout(() => flash.remove(), 200);
         
         // **DEATH CHECK - Always check if player should die**
-        if (this.health <= 0 && window.game) {
-            window.game.gameOver();
+        if (this.health <= 0 && this.game) {
+            this.game.gameOver();
         }
     }
     
@@ -429,7 +432,9 @@ export class Player {
     }
 
     heal(amount) {
+        console.log(`Player healing ${amount} points. Current health: ${this.health}`);
         this.health = Math.min(this.maxHealth, this.health + amount);
+        console.log(`Player health after healing: ${this.health}`);
     }
 
     setTarget(x, y) {
