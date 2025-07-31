@@ -1,0 +1,63 @@
+[DEBUG] Python version: 3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]
+[DEBUG] Platform: win32
+[DEBUG] Executable: C:\Users\suean\OneDrive\Desktop\tom\theTumb\THETUMB-videoGame-\launch_debug.exe
+[DEBUG] Frozen: True
+[DEBUG] Running as executable, path: C:\Users\suean\OneDrive\Desktop\tom\theTumb\THETUMB-videoGame-
+[DEBUG] Changed working directory to: C:\Users\suean\OneDrive\Desktop\tom\theTumb\THETUMB-videoGame-
+[DEBUG] Files in current directory: ['.git', 'audio', 'build', 'css', 'dist', 'docs', 'FINAL_INTEGRATION_TEST_REPORT.md', 'index.html', 'js', 'launch.py', 'launch.spec', 'launch_debug.exe', 'launch_debug.log', 'launch_debug.py', 'launch_debug.spec', 'README.md', 'SPACE_DOOM_EFFECTS_SUMMARY.md']
+[DEBUG] Found index.html
+[DEBUG] Found js directory
+[DEBUG] Found css directory
+[DEBUG] Local IP detected: 192.168.178.52
+[DEBUG] All local IPs: ['192.168.178.52']
+[DEBUG] Local IP (detected): 192.168.178.52
+[DEBUG] Hostname: Sueann
+[DEBUG] Attempting to start HTTP server...
+[DEBUG] Serveur démarré sur le port 8000
+[DEBUG] Serveur local : http://localhost:8000
+[DEBUG] Depuis un autre appareil : http://192.168.178.52:8000
+[DEBUG] Le serveur écoute sur toutes les interfaces (0.0.0.0)
+[DEBUG] Attempting to open browser...
+[DEBUG] Browser open command sent
+[DEBUG] Starting server loop...
+[DEBUG] Press Ctrl+C to stop the server
+[DEBUG] HTTP Server: "GET / HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /css/styles.css HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/utils.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/vector2d.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/weapon.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/player.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/bullet.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/enemy.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/enemies/swarmer.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/enemies/exploder.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/enemies/shooter.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/enemies/charger.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/enemies/sniper.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/enemies/healer.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/enemies/boss.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/obstacle.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/item.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/particles.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/audio.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/room.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/ui.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/game.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/Medkit.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/Valkyrie.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/Shield.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/Bazooka.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/BlackHole.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/Companion.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/Ghost.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/GodPlan.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/TimeBubble.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/RandomBox.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/Ricochet.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/items/ItemManager.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/main.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/DeathAnimationSystem.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /js/config.js HTTP/1.1" 200 -
+[DEBUG] HTTP Server: "GET /css/styles.css HTTP/1.1" 200 -
+[DEBUG] HTTP Server: code 404, message File not found
+[DEBUG] HTTP Server: "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
