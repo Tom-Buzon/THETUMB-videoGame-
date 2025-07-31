@@ -1,10 +1,12 @@
 import { PLAYER_CONFIG, ROOM_CONFIG, ENEMY_CONFIG } from './config.js';
 import { Player } from './player.js';
 import { DoomUI } from './ui.js';
+import { SpatialGrid } from './spatialGrid.js';
 import { ItemManager } from './items/ItemManager.js';
 import { RoomGenerator } from './room.js';
 import { ParticleSystem } from './particles.js';
 import { DeathAnimationSystem } from './DeathAnimationSystem.js';
+import { Enemy } from './enemy.js';
 
 export class Game {
     constructor() {
@@ -65,6 +67,7 @@ export class Game {
             this.enemies = [];
             this.bullets = [];
             this.obstacles = [];
+            this.spatialGrid = new SpatialGrid(this.canvas.width, this.canvas.height, 100); // 100px grid cells
             this.particleSystem = new ParticleSystem();
             this.deathAnimationSystem = new DeathAnimationSystem();
             this.gameTime = 0;
@@ -390,22 +393,14 @@ export class Game {
         this.enemies = this.enemies.filter(enemy => {
             // Only update enemies that are not in the process of dying
             if (!this.deathAnimationSystem.isDying(enemy)) {
+                // Activate all enemies (remove spatial partitioning optimization for enemy activation)
+                enemy.activated = true;
+                
                 const bullets = enemy.update(this.player, Date.now());
                 if (bullets && Array.isArray(bullets)) {
                     this.bullets.push(...bullets);  // spread: ajoute chaque bullet individuellement
                 } else if (bullets) {
                     this.bullets.push(bullets);     // au cas où un seul bullet est retourné (autres ennemis)
-                }
-                
-                // Activate enemies near player
-                const distance = Math.sqrt(
-                    (enemy.position.x - this.player.position.x) ** 2 +
-                    (enemy.position.y - this.player.position.y) ** 2
-                );
-                // Activate enemies within a certain range of the player
-                const ENEMY_ACTIVATION_RANGE = 1000;
-                if (distance < ENEMY_ACTIVATION_RANGE) {
-                    enemy.activated = true;
                 }
             }
             
@@ -423,30 +418,47 @@ export class Game {
             return true;
         });
         
-        // Update obstacles
+        // Clear and repopulate spatial grid
+        this.spatialGrid.clear();
+        
+        // Add entities to spatial grid
+        this.enemies.forEach(enemy => this.spatialGrid.insert(enemy));
+        this.bullets.forEach(bullet => this.spatialGrid.insert(bullet));
+        this.obstacles.forEach(obstacle => this.spatialGrid.insert(obstacle));
+        this.spatialGrid.insert(this.player);
+        
+        // Update obstacles with optimized collision detection
         this.obstacles.forEach(obstacle => {
             obstacle.update(this.player);
-            obstacle.resolveCollision(this.player);
+            
+            // Use spatial grid for player-obstacle collision
+            const nearbyEntities = this.spatialGrid.query(obstacle);
+            if (nearbyEntities.includes(this.player)) {
+                obstacle.resolveCollision(this.player);
+            }
         });
         
-        // Update bullets
+        // Update bullets with spatial grid optimization
         this.bullets = this.bullets.filter(bullet => {
             const updateResult = bullet.update();
             if (updateResult === true) return false; // Expired bullet
             if (updateResult === "bounce") return true; // Ricochet bullet that should continue
             
+            // Use spatial grid to find nearby entities for collision checking
+            const nearbyEntities = this.spatialGrid.query(bullet);
+            
             // Check collision with healer protection fields
-            for (let i = this.enemies.length - 1; i >= 0; i--) {
-                const enemy = this.enemies[i];
-                // Check if this enemy is a healer with an active protection field
-                if (enemy.constructor.name === 'Healer' && enemy.protectedEnemy && !enemy.isDying) {
-                    // Calculate distance between bullet and protected enemy
-                    const dx = bullet.position.x - enemy.protectedEnemy.position.x;
-                    const dy = bullet.position.y - enemy.protectedEnemy.position.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
+            for (let i = nearbyEntities.length - 1; i >= 0; i--) {
+                const entity = nearbyEntities[i];
+                // Check if this entity is a healer with an active protection field
+                if (entity.constructor && entity.constructor.name === 'Healer' && entity.protectedEnemy && !entity.isDying) {
+                    // Calculate squared distance between bullet and protected enemy (more efficient)
+                    const dx = bullet.position.x - entity.protectedEnemy.position.x;
+                    const dy = bullet.position.y - entity.protectedEnemy.position.y;
+                    const distanceSquared = dx * dx + dy * dy;
                     
-                    // Check if bullet is within the protection field
-                    if (distance < enemy.protectionRadius) {
+                    // Check if bullet is within the protection field (using squared distance)
+                    if (distanceSquared < entity.protectionRadius * entity.protectionRadius) {
                         // Bullet is blocked by protection field, destroy it
                         bullet.addImpactSparks(bullet.position.x, bullet.position.y);
                         return false;
@@ -456,58 +468,62 @@ export class Game {
             
             // Check collision with enemies
             if (bullet.source === 'player' || bullet.source === 'companion') {
-                for (let i = this.enemies.length - 1; i >= 0; i--) {
-                    const enemy = this.enemies[i];
-                    if (bullet.checkCollision(enemy)) {
-                        enemy.takeDamage(bullet.damage);
-                        bullet.addImpactSparks(bullet.position.x, bullet.position.y);
-                        
-                        // Add score for killing enemy when health reaches zero
-                        if (enemy.health <= 0 && this.ui) {
-                            // Different enemies could have different point values
-                            let points = 100;
-                            if (enemy.constructor.name === 'Boss') {
-                                points = 1000;
-                            } else if (enemy.constructor.name === 'Exploder') {
-                                points = 150;
-                            } else if (enemy.constructor.name === 'Shooter') {
-                                points = 120;
-                            } else if (enemy.constructor.name === 'Charger') {
-                                points = 80;
-                            } else if (enemy.constructor.name === 'Swarmer') {
-                                points = 50;
-                            } else if (enemy.constructor.name === 'Healer') {
-                                points = 200;
-                            } else if (enemy.constructor.name === 'Sniper') {
-                                points = 180;
+                let hit = false;
+                for (let i = nearbyEntities.length - 1; i >= 0; i--) {
+                    const entity = nearbyEntities[i];
+                    // Check if entity is an enemy
+                    if (entity.constructor && entity.constructor.prototype instanceof Enemy) {
+                        if (bullet.checkCollision(entity)) {
+                            entity.takeDamage(bullet.damage);
+                            bullet.addImpactSparks(bullet.position.x, bullet.position.y);
+                            
+                            // Add score for killing enemy when health reaches zero
+                            if (entity.health <= 0 && this.ui) {
+                                // Different enemies could have different point values
+                                let points = 100;
+                                if (entity.constructor.name === 'Boss') {
+                                    points = 1000;
+                                } else if (entity.constructor.name === 'Exploder') {
+                                    points = 150;
+                                } else if (entity.constructor.name === 'Shooter') {
+                                    points = 120;
+                                } else if (entity.constructor.name === 'Charger') {
+                                    points = 80;
+                                } else if (entity.constructor.name === 'Swarmer') {
+                                    points = 50;
+                                } else if (entity.constructor.name === 'Healer') {
+                                    points = 200;
+                                } else if (entity.constructor.name === 'Sniper') {
+                                    points = 180;
+                                }
+                                this.ui.addScore(points);
                             }
-                            this.ui.addScore(points);
+                            
+                            hit = true;
+                            break; // Stop checking after first hit
                         }
-                        
-                        // Don't remove enemy immediately - let the enemy filtering logic handle it
-                        // after the death animation completes
-                        return false;
                     }
                 }
+                if (hit) return false;
             } else {
                 // Check collision with healer protection fields for enemy bullets
                 let blockedByProtectionField = false;
-                for (let i = this.enemies.length - 1; i >= 0; i--) {
-                    const enemy = this.enemies[i];
-                    // Check if this enemy is a healer with an active protection field
-                    if (enemy.constructor.name === 'Healer' && enemy.protectedEnemy && !enemy.isDying) {
+                for (let i = nearbyEntities.length - 1; i >= 0; i--) {
+                    const entity = nearbyEntities[i];
+                    // Check if this entity is a healer with an active protection field
+                    if (entity.constructor && entity.constructor.name === 'Healer' && entity.protectedEnemy && !entity.isDying) {
                         // Check if the protected enemy is the player
                         // Note: In the current implementation, the healer protects other enemies, not the player
                         // But we'll keep this check in case of future modifications
                         // For now, we're just checking if the bullet hits any protection field
                         
-                        // Calculate distance between bullet and protected enemy
-                        const dx = bullet.position.x - enemy.protectedEnemy.position.x;
-                        const dy = bullet.position.y - enemy.protectedEnemy.position.y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        // Calculate squared distance between bullet and protected enemy (more efficient)
+                        const dx = bullet.position.x - entity.protectedEnemy.position.x;
+                        const dy = bullet.position.y - entity.protectedEnemy.position.y;
+                        const distanceSquared = dx * dx + dy * dy;
                         
-                        // Check if bullet is within the protection field
-                        if (distance < enemy.protectionRadius) {
+                        // Check if bullet is within the protection field (using squared distance)
+                        if (distanceSquared < entity.protectionRadius * entity.protectionRadius) {
                             // Bullet is blocked by protection field, destroy it
                             bullet.addImpactSparks(bullet.position.x, bullet.position.y);
                             blockedByProtectionField = true;
@@ -521,7 +537,7 @@ export class Game {
                 }
                 
                 // Enemy bullets hitting player
-                if (bullet.checkCollision(this.player)) {
+                if (nearbyEntities.includes(this.player) && bullet.checkCollision(this.player)) {
                     this.player.takeDamage(bullet.damage, bullet.source);
                     bullet.addImpactSparks(bullet.position.x, bullet.position.y);
                     return false;
@@ -529,21 +545,24 @@ export class Game {
             }
             
             // Check collision with obstacles
-            for (const obstacle of this.obstacles) {
-                if (obstacle.checkCollision(bullet)) {
-                    // Check if this is a ricochet bullet that should bounce
-                    if (bullet.bounceCount !== undefined && bullet.maxBounces !== undefined) {
-                        // Let the ricochet effect handle the collision
-                        // The bullet's update method will return "bounce" if it should continue
-                        // We've already handled that case above (lines 431-433)
-                        // So we don't need to do anything here
-                    } else {
-                        // Normal bullet, remove it
-                        bullet.addImpactSparks(bullet.position.x, bullet.position.y);
-                        return false;
+            for (const entity of nearbyEntities) {
+                // Check if entity is an obstacle
+                if (entity.constructor && entity.constructor.name === 'Obstacle') {
+                    if (entity.checkCollision(bullet)) {
+                        // Check if this is a ricochet bullet that should bounce
+                        if (bullet.bounceCount !== undefined && bullet.maxBounces !== undefined) {
+                            // Let the ricochet effect handle the collision
+                            // The bullet's update method will return "bounce" if it should continue
+                            // We've already handled that case above (lines 431-433)
+                            // So we don't need to do anything here
+                        } else {
+                            // Normal bullet, remove it
+                            bullet.addImpactSparks(bullet.position.x, bullet.position.y);
+                            return false;
+                        }
+                       // bullet.addImpactSparks(bullet.position.x, bullet.position.y);
+                        //return false;
                     }
-                   // bullet.addImpactSparks(bullet.position.x, bullet.position.y);
-                    //return false;
                 }
             }
             

@@ -149,8 +149,10 @@ export class Player {
 
     if (moveX !== 0 || moveY !== 0) {
         const length = Math.sqrt(moveX * moveX + moveY * moveY);
-        moveX /= length;
-        moveY /= length;
+        if (length > 0) { // Prevent division by zero
+            moveX /= length;
+            moveY /= length;
+        }
     }
 
     this.acceleration = new Vector2D(moveX * this.speed, moveY * this.speed);
@@ -426,10 +428,11 @@ export class Player {
                 for (const enemy of this.game.enemies) {
                     const dx = companion.x - enemy.position.x;
                     const dy = companion.y - enemy.position.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const distanceSquared = dx * dx + dy * dy;
                     
-                    if (distance < nearestDistance && distance < 300) { // Within 300px range
-                        nearestDistance = distance;
+                    // Use squared distances for comparison (300^2 = 90000)
+                    if (distanceSquared < nearestDistance * nearestDistance && distanceSquared < 90000) { // Within 300px range
+                        nearestDistance = Math.sqrt(distanceSquared); // Only calculate sqrt when needed
                         nearestEnemy = enemy;
                     }
                 }

@@ -220,7 +220,8 @@ export class Bullet {
     checkCollision(obj) {
         const dx = this.position.x - obj.position.x;
         const dy = this.position.y - obj.position.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        return distance < this.size + obj.size;
+        const distanceSquared = dx * dx + dy * dy;
+        const radiusSum = this.size + obj.size;
+        return distanceSquared < radiusSum * radiusSum;
     }
 }

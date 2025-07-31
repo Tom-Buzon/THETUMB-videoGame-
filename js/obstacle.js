@@ -223,12 +223,12 @@ class Obstacle {
         const closestX = Math.max(this.x, Math.min(objX, this.x + this.width));
         const closestY = Math.max(this.y, Math.min(objY, this.y + this.height));
         
-        // Calculate distance
-        const distance = Math.sqrt(
-            (objX - closestX) ** 2 + (objY - closestY) ** 2
-        );
+        // Calculate squared distance
+        const dx = objX - closestX;
+        const dy = objY - closestY;
+        const distanceSquared = dx * dx + dy * dy;
         
-        return distance < objRadius;
+        return distanceSquared < objRadius * objRadius;
     }
 
     resolveCollision(obj) {
@@ -240,12 +240,13 @@ class Obstacle {
         const closestX = Math.max(this.x, Math.min(objX, this.x + this.width));
         const closestY = Math.max(this.y, Math.min(objY, this.y + this.height));
         
-        // Calculate overlap
+        // Calculate overlap using squared distance
         const dx = objX - closestX;
         const dy = objY - closestY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        const distanceSquared = dx * dx + dy * dy;
         
-        if (distance < objRadius && distance > 0) {
+        if (distanceSquared < objRadius * objRadius && distanceSquared > 0) {
+            const distance = Math.sqrt(distanceSquared);
             const overlap = objRadius - distance;
             const pushX = (dx / distance) * overlap * this.bounceMultiplier;
             const pushY = (dy / distance) * overlap * this.bounceMultiplier;
