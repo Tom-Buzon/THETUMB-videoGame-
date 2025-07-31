@@ -3,6 +3,7 @@ import { PLAYER_CONFIG } from './config.js';
 import { Vector2D } from './vector2d.js';
 import { Weapon } from './weapon.js';
 import { Bullet } from './bullet.js';
+import { TrailBuffer } from './trail.js';
 
 export class Player {
     constructor(x, y, game) {
@@ -22,6 +23,8 @@ export class Player {
         this.invincible = false;
         this.ghost = false;
         this.weaponMode = 'NORMAL'; // NORMAL, BAZOOKA, RICOCHET
+        this.roomEntryInvulnerable = false; // Invulnerability when entering a new room
+        this.roomEntryInvulnerableTimer = 0; // Timer for room entry invulnerability
         
         // Companions
         this.companions = [];
@@ -74,6 +77,9 @@ export class Player {
         // **CORRECTION : RECUL TOUJOURS ACTIF**
         this.recoilForce = new Vector2D(0, 0);
         this.friction = PLAYER_CONFIG.FRICTION;
+        
+        // Initialize trail buffer
+        this.trailBuffer = new TrailBuffer(PLAYER_CONFIG.TRAIL.MAX_POINTS);
     }
 
     update(keys) {
@@ -136,6 +142,18 @@ export class Player {
         
         // Update companions
         this.updateCompanions();
+        
+        // Update trail buffer with current position, velocity, and recoil force
+        const velocityMagnitude = this.velocity.magnitude();
+        const recoilMagnitude = this.recoilForce.magnitude();
+        this.trailBuffer.addPoint(
+            this.position.x,
+            this.position.y,
+            this.velocity.x,
+            this.velocity.y,
+            this.recoilForce.x,
+            this.recoilForce.y
+        );
     }
 
     handleMovement(keys) {
@@ -349,8 +367,8 @@ export class Player {
     takeDamage(amount, source = 'unknown') {
         console.log(`Player taking ${amount} damage from ${source}. Current health: ${this.health}`);
         // If player is invincible or in ghost mode, take no damage
-        if (this.invincible || this.ghost) {
-            console.log('Player is invincible or in ghost mode, taking no damage');
+        if (this.invincible || this.ghost || this.roomEntryInvulnerable) {
+            console.log('Player is invincible, in ghost mode, or room entry invulnerable, taking no damage');
             return;
         }
         
@@ -496,6 +514,9 @@ export class Player {
     
 
     render(ctx) {
+        // **RENDER TRAIL**
+        this.trailBuffer.render(ctx);
+        
         // **CORPS DU JOUEUR**
         // Save context to restore later
         ctx.save();
@@ -509,6 +530,13 @@ export class Player {
         if (this.invincible) {
             // Add glow effect
             ctx.shadowColor = '#66ccff';
+            ctx.shadowBlur = 20;
+        }
+        
+        // Apply room entry invulnerability glow effect
+        if (this.roomEntryInvulnerable) {
+            // Add glow effect
+            ctx.shadowColor = '#ffff00'; // Yellow glow for room entry invulnerability
             ctx.shadowBlur = 20;
         }
         
@@ -620,6 +648,15 @@ export class Player {
                 }
             }
         }
+        
+        // Update room entry invulnerability timer
+        if (this.roomEntryInvulnerable) {
+            this.roomEntryInvulnerableTimer -= 16; // Assuming 60 FPS, 16ms per frame
+            if (this.roomEntryInvulnerableTimer <= 0) {
+                this.roomEntryInvulnerable = false;
+                this.roomEntryInvulnerableTimer = 0;
+            }
+        }
     }
     
     updateItemCooldowns() {
@@ -717,6 +754,11 @@ export class Player {
             clearTimeout(this.shootInterval);
             this.shootInterval = null;
         }
+    }
+    
+    activateRoomEntryInvulnerability() {
+        this.roomEntryInvulnerable = true;
+        this.roomEntryInvulnerableTimer = PLAYER_CONFIG.ROOM_ENTRY_INVULNERABILITY.DURATION;
     }
     
 }

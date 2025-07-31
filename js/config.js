@@ -10,6 +10,11 @@ const PLAYER_CONFIG = {
   COLOR: '#00ff00',
   FRICTION: 0.85,
   BOUNCE_DAMPING: 0.9,
+
+  // Room Entry Invulnerability
+  ROOM_ENTRY_INVULNERABILITY: {
+    DURATION: 1000 // 2 seconds
+  },
   
   // Companion Configuration
   COMPANION: {
@@ -62,6 +67,12 @@ const PLAYER_CONFIG = {
       COOLDOWN: 60000 // 60 seconds
     }
   },
+  // Trail Configuration
+  TRAIL: {
+    MAX_POINTS: 100,
+    FADE_DURATION: 1000, // 1000ms fade duration
+    COLOR: '#FFFFFF' // White color for the trail
+  },
   
   // Item Cooldowns (in milliseconds)
   ITEM_COOLDOWNS: {
@@ -76,7 +87,9 @@ const PLAYER_CONFIG = {
     COMPANION: 30000, // 30 seconds
     GOD_PLAN: 60000, // 60 seconds
     RANDOM_BOX: 15000 // 15 seconds
-  }
+  },
+  
+  
 };
 
 // Weapon Configuration

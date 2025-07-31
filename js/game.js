@@ -213,6 +213,9 @@ export class Game {
             this.ui.showRoomChangeMessage(this.currentDungeon, this.currentRoom);
         }
         
+        
+        // Activate room entry invulnerability for the player
+        this.player.activateRoomEntryInvulnerability();
         // Room loaded: this.enemies.length enemies, this.obstacles.length obstacles
     }
 
