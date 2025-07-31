@@ -79,6 +79,7 @@ export class Player {
         this.friction = PLAYER_CONFIG.FRICTION;
         
         // Initialize trail buffer
+        console.log('Creating TrailBuffer instance');
         this.trailBuffer = new TrailBuffer(PLAYER_CONFIG.TRAIL.MAX_POINTS);
     }
 
@@ -513,7 +514,9 @@ export class Player {
 
     
 
+        // **RENDER TRAIL**
     render(ctx) {
+        console.log('Calling trailBuffer.render');
         // **RENDER TRAIL**
         this.trailBuffer.render(ctx);
         

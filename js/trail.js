@@ -1,5 +1,6 @@
 // Trail system for player movement effects
 import { PLAYER_CONFIG } from './config.js';
+console.log('Trail.js module loaded');
 
 export class TrailBuffer {
     constructor(maxPoints = 100) {
@@ -7,6 +8,7 @@ export class TrailBuffer {
         this.points = new Array(maxPoints);
         this.head = 0;
         this.count = 0;
+        console.log('TrailBuffer constructor called');
         this.lastUpdateTime = 0;
     }
 
@@ -120,6 +122,8 @@ export class TrailBuffer {
 
     /**
      * Render the trail with glow effects and variable width
+    render(ctx) {
+        console.log('TrailBuffer render called');
      * @param {CanvasRenderingContext2D} ctx - Canvas context
      */
     render(ctx) {
