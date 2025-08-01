@@ -179,7 +179,12 @@ export class RoomGenerator {
             
             // Progressive damaging obstacles
             const isDamaging = Math.random() < Math.min(0.3 + dungeon * PROGRESSION_CONFIG.OBSTACLE_SCALING.DAMAGE_INCREASE, 0.8);
-            obstacles.push(new Obstacle(x, y, width, height, isDamaging));
+            
+            // Health-boosting obstacles (10% chance in early dungeons, increasing to 25% in later dungeons)
+            const healthBoostChance = Math.min(0.1 + dungeon * 0.04, 0.25);
+            const isHealthBoost = !isDamaging && Math.random() < healthBoostChance;
+            
+            obstacles.push(new Obstacle(x, y, width, height, isDamaging, isHealthBoost));
         }
         return obstacles;
     }

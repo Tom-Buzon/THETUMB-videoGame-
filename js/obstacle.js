@@ -1,19 +1,36 @@
 class Obstacle {
-    constructor(x, y, width, height, isHazardous = false) {
+    constructor(x, y, width, height, isHazardous = false, isHealthBoost = false) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.isHazardous = isHazardous;
+        this.isHealthBoost = isHealthBoost; // New property for health-boosting obstacles
         
         if (this.isHazardous) {
             this.color = '#ff0000';
-            this.damage = 25;
+            this.damage = 50;
             this.bounceMultiplier = 30;
             this.pulsePhase = 0;
             this.energyField = 0;
             this.warningGlow = 0;
             this.scanlineOffset = 0;
+            // Electric arc properties for hazardous obstacles
+            this.arcPhase = 0;
+            this.arcPoints = [];
+            this.arcColor = '#ff0000';
+        } else if (this.isHealthBoost) {
+            // Health-boosting obstacle properties
+            this.color = '#00ff00'; // Green color
+            this.healAmount = 50; // Amount of health to restore
+            this.bounceMultiplier = 60; // 2x normal bounce strength
+            this.pulsePhase = 0;
+            this.energyField = 0;
+            this.glowIntensity = 0;
+            // Electric arc properties for health-boosting obstacles
+            this.arcPhase = 0;
+            this.arcPoints = [];
+            this.arcColor = '#00ff00';
         } else {
             this.color = '#444444';
             this.damage = 0;
@@ -28,6 +45,7 @@ class Obstacle {
             this.pulsePhase += 0.15;
             this.energyField += 0.1;
             this.scanlineOffset += 0.5;
+            this.arcPhase += 0.2;
             
             // Update warning glow based on player proximity
             const distance = Math.sqrt(
@@ -41,7 +59,126 @@ class Obstacle {
             } else {
                 this.warningGlow = Math.max(this.warningGlow - 0.05, 0);
             }
+            
+            // Update electric arc points
+            this.updateElectricArcs();
+        } else if (this.isHealthBoost) {
+            // Update health-boosting obstacle effects
+            this.pulsePhase += 0.1;
+            this.energyField += 0.05;
+            this.arcPhase += 0.15;
+            
+            // Update glow intensity based on player proximity
+            const distance = Math.sqrt(
+                (player.position.x - (this.x + this.width/2)) ** 2 +
+                (player.position.y - (this.y + this.height/2)) ** 2
+            );
+            
+            const maxDistance = 100;
+            if (distance < maxDistance) {
+                this.glowIntensity = Math.min(this.glowIntensity + 0.1, 1);
+            } else {
+                this.glowIntensity = Math.max(this.glowIntensity - 0.05, 0);
+            }
+            
+            // Update electric arc points
+            this.updateElectricArcs();
         }
+    }
+
+    updateElectricArcs() {
+        // Clear existing arc points
+        this.arcPoints = [];
+        
+        // Generate arc points around the perimeter
+        const pointSpacing = 15; // Distance between arc points
+        const arcVariation = 5; // Random variation in arc positions
+        
+        // Top edge
+        for (let x = this.x; x <= this.x + this.width; x += pointSpacing) {
+            const variation = (Math.random() - 0.5) * arcVariation;
+            this.arcPoints.push({
+                x: x + variation,
+                y: this.y + variation
+            });
+        }
+        
+        // Right edge
+        for (let y = this.y; y <= this.y + this.height; y += pointSpacing) {
+            const variation = (Math.random() - 0.5) * arcVariation;
+            this.arcPoints.push({
+                x: this.x + this.width + variation,
+                y: y + variation
+            });
+        }
+        
+        // Bottom edge
+        for (let x = this.x + this.width; x >= this.x; x -= pointSpacing) {
+            const variation = (Math.random() - 0.5) * arcVariation;
+            this.arcPoints.push({
+                x: x + variation,
+                y: this.y + this.height + variation
+            });
+        }
+        
+        // Left edge
+        for (let y = this.y + this.height; y >= this.y; y -= pointSpacing) {
+            const variation = (Math.random() - 0.5) * arcVariation;
+            this.arcPoints.push({
+                x: this.x + variation,
+                y: y + variation
+            });
+        }
+    }
+
+    renderElectricArcs(ctx) {
+        if (!this.arcPoints || this.arcPoints.length === 0) return;
+        
+        // Set up electric arc rendering properties
+        ctx.strokeStyle = this.arcColor;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = this.arcColor;
+        ctx.shadowBlur = 10;
+        
+        // Draw electric arcs between points
+        ctx.beginPath();
+        for (let i = 0; i < this.arcPoints.length - 1; i++) {
+            const pointA = this.arcPoints[i];
+            const pointB = this.arcPoints[i + 1];
+            
+            // Add some randomness to the arc path for a more dynamic effect
+            const midX = (pointA.x + pointB.x) / 2 + (Math.random() - 0.5) * 10;
+            const midY = (pointA.y + pointB.y) / 2 + (Math.random() - 0.5) * 10;
+            
+            if (i === 0) {
+                ctx.moveTo(pointA.x, pointA.y);
+            }
+            
+            // Create a curved path for the electric arc effect
+            ctx.quadraticCurveTo(midX, midY, pointB.x, pointB.y);
+        }
+        ctx.stroke();
+        
+        // Reset shadow
+        ctx.shadowBlur = 0;
+        
+        // Draw additional sparks at random points for more dynamic effect
+        for (let i = 0; i < this.arcPoints.length; i += 3) {
+            if (Math.random() < 0.3) { // 30% chance to draw a spark
+                const point = this.arcPoints[i];
+                ctx.fillStyle = this.arcColor;
+                ctx.shadowColor = this.arcColor;
+                ctx.shadowBlur = 5;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 1 + Math.random() * 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Reset shadow
+        ctx.shadowBlur = 0;
     }
 
     render(ctx) {
@@ -183,6 +320,94 @@ class Obstacle {
                 ctx.fillRect(noiseX, noiseY, 1, 1);
             }
             
+            // **ELECTRIC ARCS**
+            this.renderElectricArcs(ctx);
+            
+        } else if (this.isHealthBoost) {
+            // **HEALTH-BOOSTING OBSTACLE**
+            
+            // Pulsing green glow
+            const pulseIntensity = 0.5 + Math.sin(this.pulsePhase) * 0.4;
+            const glowSize = 8 + Math.sin(this.pulsePhase * 2) * 4;
+            
+            // Outer glow
+            ctx.shadowColor = '#00ff00';
+            ctx.shadowBlur = glowSize * pulseIntensity;
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+            
+            // Energy field effect
+            const fieldAlpha = 0.3 + Math.sin(this.energyField) * 0.15;
+            ctx.strokeStyle = `rgba(0, 255, 0, ${fieldAlpha})`;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(this.x - 3, this.y - 3, this.width + 6, this.height + 6);
+            
+            // Inner glow layers
+            ctx.shadowBlur = 4;
+            ctx.fillStyle = '#44ff44';
+            ctx.fillRect(this.x + 2, this.y + 2, this.width - 4, this.height - 4);
+            
+            // Bright center
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#66ff66';
+            ctx.fillRect(this.x + 4, this.y + 4, this.width - 8, this.height - 8);
+            
+            // **HEALTH SYMBOL**
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('+', this.x + this.width/2, this.y + this.height/2);
+            
+            // **GLOW INDICATOR WHEN PLAYER IS NEAR**
+            if (this.glowIntensity > 0) {
+                // Healing border
+                ctx.strokeStyle = `rgba(0, 255, 0, ${this.glowIntensity * 0.8})`;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(this.x - 1, this.y - 1, this.width + 2, this.height + 2);
+                
+                // Healing text
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.glowIntensity})`;
+                ctx.font = 'bold 10px monospace';
+                ctx.fillText('HEAL', this.x + this.width/2, this.y - 10);
+            }
+            
+            // **ENERGY WAVES**
+            const waveRadius = 3 + Math.sin(this.pulsePhase * 4) * 2;
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 1;
+            
+            // Top waves
+            for (let x = this.x + 5; x < this.x + this.width - 5; x += 8) {
+                ctx.beginPath();
+                ctx.arc(x, this.y, waveRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            // Bottom waves
+            for (let x = this.x + 5; x < this.x + this.width - 5; x += 8) {
+                ctx.beginPath();
+                ctx.arc(x, this.y + this.height, waveRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            // Left waves
+            for (let y = this.y + 5; y < this.y + this.height - 5; y += 8) {
+                ctx.beginPath();
+                ctx.arc(this.x, y, waveRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            // Right waves
+            for (let y = this.y + 5; y < this.y + this.height - 5; y += 8) {
+                ctx.beginPath();
+                ctx.arc(this.x + this.width, y, waveRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            // **ELECTRIC ARCS**
+            this.renderElectricArcs(ctx);
+            
         } else {
             // **ENHANCED NEUTRAL OBSTACLE**
             
@@ -262,11 +487,50 @@ class Obstacle {
                     '#ff0000',
                     8
                 );
+            } else if (this.isHealthBoost && window.game && window.game.particleSystem) {
+                // Add green sparks for health-boosting obstacles
+                window.game.particleSystem.addImpactSparks(
+                    closestX,
+                    closestY,
+                    '#00ff00',
+                    8
+                );
             }
             
             // Apply damage if this is a hazardous obstacle and obj is player
             if (this.isHazardous && obj.takeDamage) {
                 obj.takeDamage(this.damage, 'hazard');
+            }
+            // Apply health gain if this is a health-boosting obstacle and obj is player
+            else if (this.isHealthBoost && obj.heal) {
+                obj.heal(this.healAmount);
+                
+                // Add visual feedback for health gain
+                if (window.game && window.game.particleSystem) {
+                    // Add healing particles
+                    for (let i = 0; i < 15; i++) {
+                        const angle = (Math.PI * 2 * i) / 15;
+                        const speed = 1 + Math.random() * 2;
+                        window.game.particleSystem.addParticle({
+                            x: obj.position.x,
+                            y: obj.position.y,
+                            vx: Math.cos(angle) * speed,
+                            vy: Math.sin(angle) * speed,
+                            color: '#00ff00',
+                            life: 30,
+                            maxLife: 30,
+                            size: 2 + Math.random() * 2
+                        });
+                    }
+                    
+                    // Add screen flash effect
+                    window.game.particleSystem.addFlash(
+                        obj.position.x,
+                        obj.position.y,
+                        50,
+                        '#00ff00'
+                    );
+                }
             }
         }
     }
