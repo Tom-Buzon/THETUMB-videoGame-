@@ -32,15 +32,15 @@ export class Player {
         
         // Item effect timers and cooldowns
         this.itemEffects = {
-            shield: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.SHIELD.DURATION }, // 10 seconds
-            ghost: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.GHOST.DURATION }, // 5 seconds
-            bazooka: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.BAZOOKA.DURATION }, // 15 seconds
-            ricochet: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.RICOCHET.DURATION }, // 15 seconds
-            valkyrie: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.VALKYRIE.DURATION }, // 8 seconds
-            timeBubble: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.TIME_BUBBLE.DURATION }, // 5 seconds
-            blackHole: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.BLACK_HOLE.DURATION }, // 10 seconds
-            companion: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.COMPANION_ITEM.COOLDOWN }, // 30 seconds
-            godPlan: { active: false, duration: 0, maxDuration: PLAYER_CONFIG.ITEM_EFFECTS.GOD_PLAN.DURATION } // 20 seconds
+            shield: { active: false, duration: 0, maxDuration: ITEM_CONFIG.SHIELD.DURATION }, // 10 seconds
+            ghost: { active: false, duration: 0, maxDuration: ITEM_CONFIG.GHOST.DURATION }, // 5 seconds
+            bazooka: { active: false, duration: 0, maxDuration: ITEM_CONFIG.BAZOOKA.DURATION }, // 15 seconds
+            ricochet: { active: false, duration: 0, maxDuration: ITEM_CONFIG.RICOCHET.DURATION }, // 15 seconds
+            valkyrie: { active: false, duration: 0, maxDuration: ITEM_CONFIG.VALKYRIE.DURATION }, // 8 seconds
+            timeBubble: { active: false, duration: 0, maxDuration: ITEM_CONFIG.TIME_BUBBLE.DURATION }, // 5 seconds
+            blackHole: { active: false, duration: 0, maxDuration: ITEM_CONFIG.BLACK_HOLE.DURATION }, // 10 seconds
+            companion: { active: false, duration: 0, maxDuration: ITEM_CONFIG.COMPANION.COOLDOWN || 30000 }, // 30 seconds
+            godPlan: { active: false, duration: 0, maxDuration: ITEM_CONFIG.GOD_PLAN.DURATION } // 20 seconds
         };
         
         // Item cooldowns (in milliseconds)
@@ -567,7 +567,7 @@ export class Player {
             ctx.save();
             
             // Calculate shield opacity based on remaining shield points
-            const maxShield = PLAYER_CONFIG.ITEM_EFFECTS.SHIELD.MAX_SHIELD; // This should match the shield value set in Shield.js
+            const maxShield = ITEM_CONFIG.SHIELD.SHIELD_AMOUNT; // This should match the shield value set in Shield.js
             const shieldRatio = Math.min(1, this.shield / maxShield);
             const opacity = 0.3 + (0.7 * shieldRatio); // Opacity ranges from 0.3 to 1.0
             

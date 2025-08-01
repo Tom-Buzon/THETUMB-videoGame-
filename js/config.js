@@ -26,47 +26,7 @@ const PLAYER_CONFIG = {
     COMPANION_COLOR: '#ff99cc'
   },
   
-  // Item Effects Configuration
-  ITEM_EFFECTS: {
-    SHIELD: {
-      DURATION: 10000, // 10 seconds
-      MAX_SHIELD: 200
-    },
-    GHOST: {
-      DURATION: 5000, // 5 seconds
-      COOLDOWN: 20000 // 20 seconds
-    },
-    BAZOOKA: {
-      DURATION: 15000, // 15 seconds
-      COOLDOWN: 45000 // 45 seconds
-    },
-    RICOCHET: {
-      DURATION: 15000, // 15 seconds
-      COOLDOWN: 45000 // 45 seconds
-    },
-    VALKYRIE: {
-      DURATION: 8000, // 8 seconds
-      COOLDOWN: 30000 // 30 seconds
-    },
-    TIME_BUBBLE: {
-      DURATION: 5000, // 5 seconds
-      COOLDOWN: 20000 // 20 seconds
-    },
-    BLACK_HOLE: {
-      DURATION: 3500, // 3.5 seconds for growing disk
-      COOLDOWN: 30000, // 30 seconds
-      EFFECT_DURATION: 2000, // 2 seconds for attraction and damage
-      ATTRACTION_RANGE: 300,
-      BLINK_DURATION: 1500 // 1.5 seconds for blinking
-    },
-    COMPANION_ITEM: {
-      COOLDOWN: 30000 // 30 seconds
-    },
-    GOD_PLAN: {
-      DURATION: 20000, // 20 seconds
-      COOLDOWN: 60000 // 60 seconds
-    }
-  },
+  
   // Trail Configuration
   TRAIL: {
     MAX_POINTS: 100,
@@ -74,21 +34,7 @@ const PLAYER_CONFIG = {
     COLOR: '#FFFFFF' // White color for the trail
   },
   
-  // Item Cooldowns (in milliseconds)
-  ITEM_COOLDOWNS: {
-    MEDKIT: 10000, // 10 seconds
-    SHIELD: 30000, // 30 seconds
-    GHOST: 20000, // 20 seconds
-    BAZOOKA: 45000, // 45 seconds
-    RICOCHET: 45000, // 45 seconds
-    VALKYRIE: 30000, // 30 seconds
-    TIME_BUBBLE: 20000, // 20 seconds
-    BLACK_HOLE: 15000, // 15 seconds
-    COMPANION: 30000, // 30 seconds
-    GOD_PLAN: 60000, // 60 seconds
-    RANDOM_BOX: 15000 // 15 seconds
-  },
-  
+ 
   
 };
 

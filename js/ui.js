@@ -239,7 +239,7 @@ export class DoomUI {
         const ctx = this.ctx;
         
         // Red overlay
-        ctx.fillStyle = '#ff0000ff';
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
         ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         // Game Over text
