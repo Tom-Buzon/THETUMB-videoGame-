@@ -92,7 +92,7 @@ export class DeathAnimationSystem {
                     );
                     break;
                     
-                case 'Healer':
+                case 'Protector':
                     // Create death explosion
                     particleSystem.addExplosion(
                         enemy.position.x,
@@ -346,8 +346,8 @@ export class DeathAnimationSystem {
             case 'Boss':
                 this.renderBossDeathAnimation(enemy, ctx, progress);
                 break;
-            case 'Healer':
-                this.renderHealerDeathAnimation(enemy, ctx, progress);
+            case 'Protector':
+                this.renderProtectorDeathAnimation(enemy, ctx, progress);
                 break;
             case 'Shooter':
                 this.renderShooterDeathAnimation(enemy, ctx, progress);
@@ -408,8 +408,8 @@ export class DeathAnimationSystem {
         ctx.fill();
     }
     
-    // Healer death animation
-    renderHealerDeathAnimation(healer, ctx, progress) {
+    // Protector death animation
+    renderProtectorDeathAnimation(protector, ctx, progress) {
         const alpha = 1 - progress;
         if (alpha <= 0) return;
         
@@ -419,8 +419,8 @@ export class DeathAnimationSystem {
         for (let i = 0; i < 12; i++) {
             const angle = (Math.PI * 2 * i) / 12;
             const distance = progress * 60;
-            const x = healer.position.x + Math.cos(angle) * distance;
-            const y = healer.position.y + Math.sin(angle) * distance;
+            const x = protector.position.x + Math.cos(angle) * distance;
+            const y = protector.position.y + Math.sin(angle) * distance;
             
             ctx.fillStyle = `rgba(255, 0, 255, ${alpha * 0.5})`;
             ctx.beginPath();

@@ -7,6 +7,7 @@ import { RoomGenerator } from './room.js';
 import { ParticleSystem } from './particles.js';
 import { DeathAnimationSystem } from './DeathAnimationSystem.js';
 import { Enemy } from './enemy.js';
+import { Protector } from './enemies/protector.js';
 
 export class Game {
     constructor() {
@@ -58,7 +59,7 @@ export class Game {
             // ItemManager created
             
             // Progressive dungeon system
-            this.currentDungeon = 1;
+            this.currentDungeon = 4;
             this.currentRoom = 1;
             this.maxDungeons = ROOM_CONFIG.MAX_DUNGEONS;
             this.maxRooms = ROOM_CONFIG.MAX_ROOMS;
@@ -450,25 +451,6 @@ export class Game {
             // Use spatial grid to find nearby entities for collision checking
             const nearbyEntities = this.spatialGrid.query(bullet);
             
-            // Check collision with healer protection fields
-            for (let i = nearbyEntities.length - 1; i >= 0; i--) {
-                const entity = nearbyEntities[i];
-                // Check if this entity is a healer with an active protection field
-                if (entity.constructor && entity.constructor.name === 'Healer' && entity.protectedEnemy && !entity.isDying) {
-                    // Calculate squared distance between bullet and protected enemy (more efficient)
-                    const dx = bullet.position.x - entity.protectedEnemy.position.x;
-                    const dy = bullet.position.y - entity.protectedEnemy.position.y;
-                    const distanceSquared = dx * dx + dy * dy;
-                    
-                    // Check if bullet is within the protection field (using squared distance)
-                    if (distanceSquared < entity.protectionRadius * entity.protectionRadius) {
-                        // Bullet is blocked by protection field, destroy it
-                        bullet.addImpactSparks(bullet.position.x, bullet.position.y);
-                        return false;
-                    }
-                }
-            }
-            
             // Check collision with enemies
             if (bullet.source === 'player' || bullet.source === 'companion') {
                 let hit = false;
@@ -477,29 +459,37 @@ export class Game {
                     // Check if entity is an enemy
                     if (entity.constructor && entity.constructor.prototype instanceof Enemy) {
                         if (bullet.checkCollision(entity)) {
-                            entity.takeDamage(bullet.damage);
-                            bullet.addImpactSparks(bullet.position.x, bullet.position.y);
-                            
-                            // Add score for killing enemy when health reaches zero
-                            if (entity.health <= 0 && this.ui) {
-                                // Different enemies could have different point values
-                                let points = 100;
-                                if (entity.constructor.name === 'Boss') {
-                                    points = 1000;
-                                } else if (entity.constructor.name === 'Exploder') {
-                                    points = 150;
-                                } else if (entity.constructor.name === 'Shooter') {
-                                    points = 120;
-                                } else if (entity.constructor.name === 'Charger') {
-                                    points = 80;
-                                } else if (entity.constructor.name === 'Swarmer') {
-                                    points = 50;
-                                } else if (entity.constructor.name === 'Healer') {
-                                    points = 200;
-                                } else if (entity.constructor.name === 'Sniper') {
-                                    points = 180;
+                            // Check if the entity is protected by a living protector
+                            if (Protector && Protector.isProtected && Protector.isProtected(entity, this.enemies)) {
+                                // Entity is protected, don't apply damage
+                                console.log(`Damage blocked! ${entity.constructor.name} is protected by a living Protector`);
+                                bullet.addImpactSparks(bullet.position.x, bullet.position.y);
+                            } else {
+                                // Entity is not protected, apply damage
+                                entity.takeDamage(bullet.damage);
+                                bullet.addImpactSparks(bullet.position.x, bullet.position.y);
+                                
+                                // Add score for killing enemy when health reaches zero
+                                if (entity.health <= 0 && this.ui) {
+                                    // Different enemies could have different point values
+                                    let points = 100;
+                                    if (entity.constructor.name === 'Boss') {
+                                        points = 1000;
+                                    } else if (entity.constructor.name === 'Exploder') {
+                                        points = 150;
+                                    } else if (entity.constructor.name === 'Shooter') {
+                                        points = 120;
+                                    } else if (entity.constructor.name === 'Charger') {
+                                        points = 80;
+                                    } else if (entity.constructor.name === 'Swarmer') {
+                                        points = 50;
+                                    } else if (entity.constructor.name === 'Protector') {
+                                        points = 200;
+                                    } else if (entity.constructor.name === 'Sniper') {
+                                        points = 180;
+                                    }
+                                    this.ui.addScore(points);
                                 }
-                                this.ui.addScore(points);
                             }
                             
                             hit = true;
@@ -509,37 +499,8 @@ export class Game {
                 }
                 if (hit) return false;
             } else {
-                // Check collision with healer protection fields for enemy bullets
-                let blockedByProtectionField = false;
-                for (let i = nearbyEntities.length - 1; i >= 0; i--) {
-                    const entity = nearbyEntities[i];
-                    // Check if this entity is a healer with an active protection field
-                    if (entity.constructor && entity.constructor.name === 'Healer' && entity.protectedEnemy && !entity.isDying) {
-                        // Check if the protected enemy is the player
-                        // Note: In the current implementation, the healer protects other enemies, not the player
-                        // But we'll keep this check in case of future modifications
-                        // For now, we're just checking if the bullet hits any protection field
-                        
-                        // Calculate squared distance between bullet and protected enemy (more efficient)
-                        const dx = bullet.position.x - entity.protectedEnemy.position.x;
-                        const dy = bullet.position.y - entity.protectedEnemy.position.y;
-                        const distanceSquared = dx * dx + dy * dy;
-                        
-                        // Check if bullet is within the protection field (using squared distance)
-                        if (distanceSquared < entity.protectionRadius * entity.protectionRadius) {
-                            // Bullet is blocked by protection field, destroy it
-                            bullet.addImpactSparks(bullet.position.x, bullet.position.y);
-                            blockedByProtectionField = true;
-                            break;
-                        }
-                    }
-                }
-                
-                if (blockedByProtectionField) {
-                    return false;
-                }
-                
                 // Enemy bullets hitting player
+                // Note: Player protection by protectors is not implemented in the current design
                 if (nearbyEntities.includes(this.player) && bullet.checkCollision(this.player)) {
                     this.player.takeDamage(bullet.damage, bullet.source);
                     bullet.addImpactSparks(bullet.position.x, bullet.position.y);

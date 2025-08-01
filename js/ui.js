@@ -322,8 +322,8 @@ export class DoomUI {
     
     isClickOnRestartButton(x, y) {
         // Check if the click coordinates are within the restart button bounds
-        console.log('Checking if click is on restart button at', x, y);
-        console.log('Restart button position:', this.restartButton);
+     // console.log('Checking if click is on restart button at', x, y);
+     // console.log('Restart button position:', this.restartButton);
         if (this.restartButton) {
             const isOnButton = (
                 x >= this.restartButton.x &&
@@ -340,8 +340,8 @@ export class DoomUI {
     
     // Method to reset UI state, including clearing the restart button position
     reset() {
-        console.log('Resetting UI state');
-        console.log('Restart button position before reset:', this.restartButton);
+     // console.log('Resetting UI state');
+      //console.log('Restart button position before reset:', this.restartButton);
         this.restartButton = undefined;
         this.showGameOver = false;
         console.log('UI state reset complete');

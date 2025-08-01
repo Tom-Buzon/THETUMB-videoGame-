@@ -1,5 +1,6 @@
 import { WEAPON_CONFIG } from './config.js';
 import { Bullet } from './bullet.js';
+import { Protector } from './enemies/protector.js';
 
 export class Weapon {
     constructor() {
@@ -428,48 +429,65 @@ export class Weapon {
                     enemy.position.x, enemy.position.y,
                     enemy.size
                 )) {
-                    // Deal continuous damage (100 damage per frame)
-                    enemy.takeDamage(this.states.LASER.damage);
-                    
-                    // Add enhanced visual effect for hit
-                    if (player.game.particleSystem) {
-                        // Add more impact sparks
-                        player.game.particleSystem.addImpactSparks(
-                            enemy.position.x,
-                            enemy.position.y,
-                            '#ff0000',
-                            10
-                        );
+                    // Check if the enemy is protected by a living protector
+                    if (Protector.isProtected(enemy, player.game.enemies)) {
+                        // Enemy is protected, don't apply damage but still show visual effects
+                        console.log(`Laser damage blocked! ${enemy.constructor.name} is protected by a living Protector`);
                         
-                        // Add additional energy particles
-                        for (let i = 0; i < 8; i++) {
-                            const angle = Math.random() * Math.PI * 2;
-                            const speed = 1 + Math.random() * 3;
-                            player.game.particleSystem.addParticle({
-                                x: enemy.position.x,
-                                y: enemy.position.y,
-                                vx: Math.cos(angle) * speed,
-                                vy: Math.sin(angle) * speed,
-                                color: '#ff5555',
-                                life: 15,
-                                maxLife: 15,
-                                size: 1 + Math.random() * 2,
-                                type: 'spark'
-                            });
+                        // Add visual effect for blocked hit
+                        if (player.game.particleSystem) {
+                            // Add blocked effect sparks
+                            player.game.particleSystem.addImpactSparks(
+                                enemy.position.x,
+                                enemy.position.y,
+                                '#8888ff', // Blue color for blocked hits
+                                5
+                            );
                         }
-                    }
-                    
-                    // Add screen shake on enemy hit
-                    if (player.game.particleSystem) {
-                        player.game.particleSystem.addScreenShake(5);
+                    } else {
+                        // Enemy is not protected, apply damage
+                        enemy.takeDamage(this.states.LASER.damage);
                         
-                        // Add damage number display
-                        player.game.particleSystem.addDamageNumber(
-                            enemy.position.x,
-                            enemy.position.y - 20, // Display above the enemy
-                            100, // Damage amount
-                            '#ff0000' // Red color for damage
-                        );
+                        // Add enhanced visual effect for hit
+                        if (player.game.particleSystem) {
+                            // Add more impact sparks
+                            player.game.particleSystem.addImpactSparks(
+                                enemy.position.x,
+                                enemy.position.y,
+                                '#ff0000',
+                                10
+                            );
+                            
+                            // Add additional energy particles
+                            for (let i = 0; i < 8; i++) {
+                                const angle = Math.random() * Math.PI * 2;
+                                const speed = 1 + Math.random() * 3;
+                                player.game.particleSystem.addParticle({
+                                    x: enemy.position.x,
+                                    y: enemy.position.y,
+                                    vx: Math.cos(angle) * speed,
+                                    vy: Math.sin(angle) * speed,
+                                    color: '#ff5555',
+                                    life: 15,
+                                    maxLife: 15,
+                                    size: 1 + Math.random() * 2,
+                                    type: 'spark'
+                                });
+                            }
+                        }
+                        
+                        // Add screen shake on enemy hit
+                        if (player.game.particleSystem) {
+                            player.game.particleSystem.addScreenShake(5);
+                            
+                            // Add damage number display
+                            player.game.particleSystem.addDamageNumber(
+                                enemy.position.x,
+                                enemy.position.y - 20, // Display above the enemy
+                                100, // Damage amount
+                                '#ff0000' // Red color for damage
+                            );
+                        }
                     }
                 }
             }

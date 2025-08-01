@@ -516,7 +516,7 @@ export class Player {
 
         // **RENDER TRAIL**
     render(ctx) {
-        console.log('Calling trailBuffer.render');
+      //onsole.log('Calling trailBuffer.render');
         // **RENDER TRAIL**
         this.trailBuffer.render(ctx);
         

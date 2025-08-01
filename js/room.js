@@ -3,7 +3,7 @@ import { Charger } from './enemies/charger.js';
 import { Shooter } from './enemies/shooter.js';
 import { Exploder } from './enemies/exploder.js';
 import { Swarmer } from './enemies/swarmer.js';
-import { Healer } from './enemies/healer.js';
+import { Protector } from './enemies/protector.js';
 import { Sniper } from './enemies/sniper.js';
 import { Boss } from './enemies/boss.js';
 
@@ -44,13 +44,13 @@ export class RoomGenerator {
                 count = Math.min(count, ROOM_CONFIG.ENEMY_COUNT.DUNGEON_3);
                 break;
             case 4:
-                // Elite enemies with healers
-                enemyTypes = ['shooter', 'healer', 'exploder', 'charger', 'swarmer', 'sniper'];
+                // Elite enemies with protectors
+                enemyTypes = ['shooter', 'protector', 'exploder', 'charger', 'swarmer', 'sniper'];
                 count = Math.min(count, ROOM_CONFIG.ENEMY_COUNT.DUNGEON_4);
                 break;
             default:
                 // High level - all types with increased difficulty
-                enemyTypes = ['shooter', 'healer', 'exploder', 'charger', 'swarmer', 'healer', 'sniper'];
+                enemyTypes = ['shooter', 'protector', 'exploder', 'charger', 'swarmer', 'protector', 'sniper'];
                 count = Math.min(count, ROOM_CONFIG.ENEMY_COUNT.DUNGEON_5);
         }
         
@@ -79,9 +79,9 @@ export class RoomGenerator {
                 case 'swarmer':
                     enemy = new Swarmer(x, y);
                     break;
-                case 'healer':
-                    // Create healer without enemies list for now
-                    enemy = new Healer(x, y);
+                case 'protector':
+                    // Create protector without enemies list for now
+                    enemy = new Protector(x, y);
                     break;
                 case 'sniper':
                     enemy = new Sniper(x, y);
@@ -95,11 +95,11 @@ export class RoomGenerator {
             });
         }
         
-        // Now initialize healers with the complete enemy list
+        // Now initialize protectors with the complete enemy list
         const allEnemies = enemyObjects.map(item => item.object);
         enemyObjects.forEach(item => {
-            if (item.type === 'healer') {
-                // Re-initialize healer with enemies list
+            if (item.type === 'protector') {
+                // Re-initialize protector with enemies list
                 item.object.chooseProtectedEnemy(allEnemies);
             }
         });

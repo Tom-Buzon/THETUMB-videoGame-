@@ -1,4 +1,5 @@
 import { ITEM_CONFIG } from '../config.js';
+import { Protector } from '../enemies/protector.js';
 
 export class ValkyrieItem {
     constructor(game, x, y) {
@@ -39,11 +40,18 @@ export class ValkyrieItem {
                     const dy = enemy.position.y - this.game.player.position.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist <= this.maxShockwaveRadius) {
-                        enemy.takeDamage(9999);
-                        
-                        // Check if enemy should be removed
-                        if (enemy.health <= 0 || (enemy.isDying && enemy.deathAnimation >= 1)) {
-                            this.game.enemies.splice(i, 1);
+                        // Check if the enemy is protected by a living protector
+                        if (Protector.isProtected(enemy, this.game.enemies)) {
+                            // Enemy is protected, don't apply damage
+                            console.log(`Valkyrie damage blocked! ${enemy.constructor.name} is protected by a living Protector`);
+                        } else {
+                            // Enemy is not protected, apply damage
+                            enemy.takeDamage(9999);
+                            
+                            // Check if enemy should be removed
+                            if (enemy.health <= 0 || (enemy.isDying && enemy.deathAnimation >= 1)) {
+                                this.game.enemies.splice(i, 1);
+                            }
                         }
                     }
                 }

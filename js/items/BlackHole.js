@@ -1,4 +1,5 @@
 import { ITEM_CONFIG } from '../config.js';
+import { Protector } from '../enemies/protector.js';
 
 export class BlackHoleItem {
     constructor(game, x, y) {
@@ -108,7 +109,14 @@ export class BlackHoleItem {
                     for (let enemy of this.enemiesToDamage) {
                         // Only damage enemies that are still alive
                         if (enemy.health > 0) {
-                            enemy.takeDamage(400);
+                            // Check if the enemy is protected by a living protector
+                            if (Protector.isProtected(enemy, this.game.enemies)) {
+                                // Enemy is protected, don't apply damage
+                                console.log(`BlackHole damage blocked! ${enemy.constructor.name} is protected by a living Protector`);
+                            } else {
+                                // Enemy is not protected, apply damage
+                                enemy.takeDamage(400);
+                            }
                         }
                     }
                     
@@ -229,7 +237,14 @@ export class BlackHoleItem {
             const dist = Math.sqrt(dx * dx + dy * dy);
             
             if (dist < ITEM_CONFIG.BLACK_HOLE.ATTRACTION_RANGE) {
-                enemy.takeDamage(9999);
+                // Check if the enemy is protected by a living protector
+                if (typeof Protector !== 'undefined' && Protector.isProtected && Protector.isProtected(enemy, this.game.enemies)) {
+                    // Enemy is protected, don't apply damage
+                    console.log(`BlackHole explosion damage blocked! ${enemy.constructor.name} is protected by a living Protector`);
+                } else {
+                    // Enemy is not protected, apply damage
+                    enemy.takeDamage(9999);
+                }
             }
         }
         

@@ -3,7 +3,23 @@ import { Enemy } from '../enemy.js';
 import { Vector2D } from '../vector2d.js';
 import { Bullet } from '../bullet.js';
 
-export class Healer extends Enemy {
+export class Protector extends Enemy {
+    // Check if an enemy is protected by a living protector
+    static isProtected(enemy, allEnemies) {
+        // Look for a living protector that has created a shield
+        for (const e of allEnemies) {
+            if (e instanceof Protector && e.health > 0 && e.protectedEnemy) {
+                // Check if the enemy is within the protection radius of the protected enemy
+                const dx = enemy.position.x - e.protectedEnemy.position.x;
+                const dy = enemy.position.y - e.protectedEnemy.position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance <= e.protectionRadius) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     constructor(x, y, enemies = []) {
         super(x, y);
         this.size = ENEMY_CONFIG.HEALER.SIZE;
@@ -11,53 +27,37 @@ export class Healer extends Enemy {
         this.speed = ENEMY_CONFIG.HEALER.SPEED;
         this.maxHealth = ENEMY_CONFIG.HEALER.MAX_HEALTH;
         this.health = this.maxHealth;
-        this.healRadius = ENEMY_CONFIG.HEALER.HEAL_RANGE;
-        this.healAmount = ENEMY_CONFIG.HEALER.HEAL_AMOUNT;
-        this.healInterval = ENEMY_CONFIG.HEALER.HEAL_COOLDOWN;
-        this.lastHeal = 0;
         this.shieldRadius = 60;
-        this.healPulse = 0;
         this.energyField = 0;
         
         // Protection field properties
         this.protectionRadius = 80;
         this.protectedEnemy = null;
-        this.originalEnemyVulnerability = null;
         
-        // Choose a random enemy to protect (excluding self and other healers)
+        // Choose a random enemy to protect (excluding self and other protectors)
         this.chooseProtectedEnemy(enemies);
     }
     
     chooseProtectedEnemy(enemies) {
-        // Filter out self and other healers
+        // Filter out self and other protectors
         const validEnemies = enemies.filter(enemy =>
             enemy !== this && !(enemy instanceof Protector) && enemy.health > 0
         );
         
+        console.log(`Protector: Found ${validEnemies.length} valid enemies to protect`);
+        
         if (validEnemies.length > 0) {
             // Choose a random enemy to protect
             this.protectedEnemy = validEnemies[Math.floor(Math.random() * validEnemies.length)];
-            // Store the original vulnerability state
-            this.originalEnemyVulnerability = this.protectedEnemy.takeDamage;
-            // Make the enemy invulnerable by overriding its takeDamage method
-            this.protectedEnemy.takeDamage = (amount) => {
-                // Enemy is invulnerable while healer is alive
-                return;
-            };
-        }
-    }
-    
-    // Restore the protected enemy's vulnerability when the healer dies
-    restoreEnemyVulnerability() {
-        if (this.protectedEnemy && this.originalEnemyVulnerability) {
-            this.protectedEnemy.takeDamage = this.originalEnemyVulnerability;
+            console.log(`Protector: Now protecting enemy of type ${this.protectedEnemy.constructor.name}`);
+        } else {
+            console.log("Protector: No valid enemies to protect");
         }
     }
 
     update(player, currentTime) {
         if (!this.activated) return null;
 
-        this.healPulse += 0.1;
         this.energyField += 0.05;
 
         // Canvas boundary checking (1400x1000)
@@ -91,17 +91,15 @@ export class Healer extends Enemy {
             }
         }
 
-        // Heal nearby enemies
-        if (currentTime - this.lastHeal > this.healInterval) {
-            this.lastHeal = currentTime;
-            // Healing is handled in game.js
-        }
-
         // **PROJECTILE ATTACK - Basic shooting when player is in range**
+        const distanceToPlayer = Math.sqrt(
+            Math.pow(player.position.x - this.position.x, 2) + 
+            Math.pow(player.position.y - this.position.y, 2)
+        );
         const shootRange = 800;
         const shootCooldown = 30; // 0.5 seconds
         
-        if (distance <= shootRange && Math.random() < 0.02) { // Random chance to shoot
+        if (distanceToPlayer <= shootRange && Math.random() < 0.02) { // Random chance to shoot
             const direction = new Vector2D(
                 player.position.x - this.position.x,
                 player.position.y - this.position.y
@@ -123,22 +121,18 @@ export class Healer extends Enemy {
     }
 
     takeDamage(amount) {
+        console.log(`Protector: Taking ${amount} damage, health now ${this.health - amount}`);
         this.health = Math.max(0, this.health - amount);
-        
-        // Restore the protected enemy's vulnerability when the healer dies
-        if (this.health <= 0) {
-            this.restoreEnemyVulnerability();
-        }
         
         // Call parent takeDamage method which handles death animation triggering
         super.takeDamage(amount);
     }
 
     render(ctx) {
-        // **HEALER DISSOLVE EFFECT**
+        // **PROTECTOR DISSOLVE EFFECT**
         // Removed individual death animation rendering logic as it's now handled by DeathAnimationSystem
 
-        // **ENHANCED HEALER WITH SPACE DOOM EFFECTS**
+        // **ENHANCED PROTECTOR WITH SPACE DOOM EFFECTS**
         
         // Render protection field around protected enemy
         if (this.protectedEnemy) {
@@ -159,13 +153,6 @@ export class Healer extends Enemy {
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, this.shieldRadius, 0, Math.PI * 2);
         ctx.stroke();
-        
-        // Healing aura
-        const healAlpha = 0.5 + Math.sin(this.healPulse) * 0.3;
-        ctx.fillStyle = `rgba(255, 0, 255, ${healAlpha * 0.2})`;
-        ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.healRadius, 0, Math.PI * 2);
-        ctx.fill();
         
         // Main body with energy core
         const gradient = ctx.createRadialGradient(
@@ -189,19 +176,6 @@ export class Healer extends Enemy {
         ctx.arc(this.position.x, this.position.y, 3, 0, Math.PI * 2);
         ctx.fill();
         
-        // **HEALING PARTICLES**
-        for (let i = 0; i < 8; i++) {
-            const angle = (Math.PI * 2 * i) / 8 + this.healPulse;
-            const distance = this.size + 5 + Math.sin(this.healPulse * 2) * 3;
-            const x = this.position.x + Math.cos(angle) * distance;
-            const y = this.position.y + Math.sin(angle) * distance;
-            
-            ctx.fillStyle = '#ff00ff';
-            ctx.beginPath();
-            ctx.arc(x, y, 2, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
         // **PLUS SIGN WITH GLOW**
         ctx.shadowColor = '#ffffff';
         ctx.shadowBlur = 5;
@@ -216,18 +190,6 @@ export class Healer extends Enemy {
         
         // Reset shadow
         ctx.shadowBlur = 0;
-        
-        // **HEALING WAVES**
-        for (let i = 0; i < 3; i++) {
-            const waveRadius = (this.healRadius * 0.5) + (i * 10) + (Math.sin(this.healPulse + i) * 5);
-            const waveAlpha = 0.3 - (i * 0.1);
-            
-            ctx.strokeStyle = `rgba(255, 0, 255, ${waveAlpha})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(this.position.x, this.position.y, waveRadius, 0, Math.PI * 2);
-            ctx.stroke();
-        }
         
         // Health bar
         const barWidth = 30;
