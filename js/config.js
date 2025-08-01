@@ -278,7 +278,7 @@ const ENEMY_CONFIG = {
 // Item Configuration
 const ITEM_CONFIG = {
   BASE: {
-    RADIUS: 15
+    RADIUS: 25
   },
   MEDKIT: {
     COLOR: "#00ff99",
@@ -294,7 +294,10 @@ const ITEM_CONFIG = {
   BAZOOKA: {
     COLOR: "#ff3333",
     DURATION: 15000, // 15 seconds
-    COOLDOWN: 45000 // 45 seconds
+    COOLDOWN: 45000, // 45 seconds
+    SIZE_MULTIPLIER: 3,
+    DAMAGE_MULTIPLIER: 2.0,
+    SPEED_MULTIPLIER: 1.5
   },
   COMPANION: {
     COLOR: "#ff99cc"
@@ -367,15 +370,15 @@ const ROOM_CONFIG = {
   
   ITEM_RARITY: {
     //Pour facilement tester un item
-    //COMMON: ['Ricochet'],
-    //UNCOMMON: ['Ricochet'],
-    //RARE: ['Ricochet'],
-    //EPIC: ['Ricochet']
+    //COMMON: ['Bazooka'],
+    //UNCOMMON: ['Bazooka'],
+    //RARE: ['Bazooka'],
+    //EPIC: ['Bazooka']
     
     //classement réel d'items
-    COMMON: ['Medkit', 'Ricochet','BlackHole'],
-    UNCOMMON: ['Shield', 'Ghost', 'Companion'],
-    RARE: ['Bazooka', 'Valkyrie', 'TimeBubble'],
+    COMMON: ['Medkit', 'Ricochet','Bazooka','Ghost'],
+    UNCOMMON: ['Shield', 'BlackHole', 'Companion'],
+    RARE: [, 'Valkyrie', 'TimeBubble'],
     EPIC: ['GodPlan', 'RandomBox']
   }
 };

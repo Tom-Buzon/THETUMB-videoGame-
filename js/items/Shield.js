@@ -7,14 +7,31 @@ export class ShieldItem {
         this.y = y;
         this.radius = ITEM_CONFIG.BASE.RADIUS;
         this.color = ITEM_CONFIG.SHIELD.COLOR;
+        this.pulseTime = 0; // For aura pulsing effect
+        this.pulseTime = 0; // For aura pulsing effect
     }
 
-    update() {}
+    update() {
+        this.pulseTime += 0.1; // Increment pulse time for animation
+    }
+    
     draw(ctx) {
+        // Calculate pulsing effect for aura
+        const pulse = Math.sin(this.pulseTime) * 0.5 + 0.5; // Value between 0 and 1
+        const auraIntensity = 10 + pulse * 10; // Pulsing blur between 10 and 20
+        
+        // Draw aura effect
+        ctx.save();
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = auraIntensity;
+        
+        // Draw shield item with aura
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
         ctx.fillStyle = this.color;
         ctx.fill();
+        
+        ctx.restore(); // Restore context to remove shadow effects
     }
 
     activate() {

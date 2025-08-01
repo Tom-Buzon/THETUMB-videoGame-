@@ -7,10 +7,24 @@ export class CompanionItem {
         this.y = y;
         this.radius = ITEM_CONFIG.BASE.RADIUS;
         this.color = ITEM_CONFIG.COMPANION.COLOR;
+        this.pulseTime = 0; // For aura pulsing effect
+        this.pulseTime = 0; // For aura pulsing effect
     }
 
-    update() {}
+    update() {
+        this.pulseTime += 0.1; // Increment pulse time for animation
+    }
+    
     draw(ctx) {
+        // Calculate pulsing effect for aura
+        const pulse = Math.sin(this.pulseTime) * 0.5 + 0.5; // Value between 0 and 1
+        const auraIntensity = 10 + pulse * 10; // Pulsing blur between 10 and 20
+        
+        // Draw aura effect
+        ctx.save();
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = auraIntensity;
+        
         // Draw robot body (circle)
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius * 0.7, 0, 2 * Math.PI);
@@ -87,6 +101,8 @@ export class CompanionItem {
             armWidth,
             armHeight
         );
+        
+        ctx.restore(); // Restore context to remove shadow effects
     }
 
     activate() {

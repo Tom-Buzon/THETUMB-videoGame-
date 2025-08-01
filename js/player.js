@@ -1,5 +1,5 @@
 // Import configuration
-import { PLAYER_CONFIG } from './config.js';
+import { ITEM_CONFIG, PLAYER_CONFIG } from './config.js';
 import { Vector2D } from './vector2d.js';
 import { Weapon } from './weapon.js';
 import { Bullet } from './bullet.js';
@@ -199,6 +199,11 @@ export class Player {
             const bullet = this.weapon.shoot(this.position.x, this.position.y, direction, this);
             
             if (bullet) {
+                // Apply bazooka effects: size, speed, and damage multipliers from config
+                bullet.size *= ITEM_CONFIG.BAZOOKA.SIZE_MULTIPLIER;  // Use size multiplier from config
+                bullet.velocity = bullet.velocity.multiply(ITEM_CONFIG.BAZOOKA.SPEED_MULTIPLIER);  // Use speed multiplier from config
+                bullet.damage *= ITEM_CONFIG.BAZOOKA.DAMAGE_MULTIPLIER;  // Use damage multiplier from config
+                
                 // **CALCUL DU RECUL CORRIGÉ**
                 const recoilMultiplier = this.weapon.states[this.weapon.currentState].recoilMult;
                 const recoil = direction.multiply(-bullet.damage * recoilMultiplier);

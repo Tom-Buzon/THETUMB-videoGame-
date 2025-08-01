@@ -7,16 +7,32 @@ export class RicochetItem {
         this.y = y;
         this.radius = ITEM_CONFIG.BASE.RADIUS;
         this.color = ITEM_CONFIG.RICOCHET.COLOR;
+        this.pulseTime = 0; // For aura pulsing effect
+        this.pulseTime = 0; // For aura pulsing effect
     }
 
-    update() {}
+    update() {
+        this.pulseTime += 0.1; // Increment pulse time for animation
+    }
+    
     draw(ctx) {
+        // Calculate pulsing effect for aura
+        const pulse = Math.sin(this.pulseTime) * 0.5 + 0.5; // Value between 0 and 1
+        const auraIntensity = 10 + pulse * 10; // Pulsing blur between 10 and 20
+        
+        // Draw aura effect
+        ctx.save();
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = auraIntensity;
+        
         // Draw bouncing symbol >|
         ctx.fillStyle = this.color;
         ctx.font = `${this.radius * 1.2}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('>|', this.x, this.y);
+        
+        ctx.restore(); // Restore context to remove shadow effects
     }
 
     activate() {

@@ -584,7 +584,8 @@ export class Game {
             this.player.weapon.renderLaser(
                 this.ctx,
                 this.player.position.x,
-                this.player.position.y
+                this.player.position.y,
+                this.player
             );
         }
         

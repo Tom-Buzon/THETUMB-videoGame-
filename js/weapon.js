@@ -1,6 +1,7 @@
 import { WEAPON_CONFIG } from './config.js';
 import { Bullet } from './bullet.js';
 import { Protector } from './enemies/protector.js';
+import { Branch } from './branch.js';
 
 export class Weapon {
     constructor() {
@@ -68,6 +69,11 @@ export class Weapon {
         this.laserDirection = null;
         this.laserRecoilApplied = false;
         this.laserDeactivated = false;
+        
+        // Bazooka branch structure (created once when laser is fired)
+        this.bazookaBranches = [];
+        this.initialLaserEndpoint = null;
+        this.initialLaserDirection = null;
     }
 
     updateState(playerHealth, maxHealth) {
@@ -271,7 +277,79 @@ export class Weapon {
             player.game
         );
         
+        // Store initial laser direction and endpoint for bazooka branches
+        this.initialLaserDirection = { x: this.laserDirection.x, y: this.laserDirection.y };
+        this.initialLaserEndpoint = { x: this.laserEndpoint.x, y: this.laserEndpoint.y };
+        
+        // Create bazooka branch structure if player has BAZOOKA weapon mode active
+        if (player && player.weaponMode === 'BAZOOKA') {
+            this.createBazookaBranches(player.position.x, player.position.y, this.initialLaserEndpoint.x, this.initialLaserEndpoint.y);
+        }
+        
         return true;
+    }
+    
+    createBazookaBranches(playerX, playerY, endX, endY) {
+        // Create enhanced branching laser system with hierarchical structure
+        this.bazookaBranches = []; // Clear any existing branches
+        
+        // Create 5 primary branches
+        for (let i = 0; i < 5; i++) {
+            // Calculate position along the main laser beam (20%, 35%, 50%, 65%, 80%)
+            const t = 0.2 + (i * 0.15);
+            const branchStartX = playerX + (endX - playerX) * t;
+            const branchStartY = playerY + (endY - playerY) * t;
+            
+            // Calculate angle relative to main laser direction
+            const mainAngle = Math.atan2(endY - playerY, endX - playerX);
+            
+            // For primary branches: Use angles of mainAngle + (index * Math.PI / 2) for indices 0-3
+            // For the 5th branch (index 4), place it opposite to the first branch
+            let branchAngle;
+            if (i < 4) {
+                branchAngle = mainAngle + (i * Math.PI / 2);
+            } else {
+                // 5th branch opposite to first branch
+                branchAngle = mainAngle + Math.PI;
+            }
+            
+            // Create primary branch
+            const primaryBranch = new Branch(
+                `branch-${i}`,
+                branchStartX,
+                branchStartY,
+                branchAngle,
+                200, // Max length
+                i,
+                1 // Level 1
+            );
+            
+            // Create 2 sub-branches for each primary branch
+            for (let j = 0; j < 2; j++) {
+                // Position sub-branch at 30% and 70% along the primary branch
+                const subT = j === 0 ? 0.3 : 0.7;
+                const subLength = 140; // 70% of primary branch length
+                
+                // For sub-branches: Use parentAngle ± Math.PI / 2 for the two sub-branches
+                const subAngle = primaryBranch.angle + (j === 0 ? Math.PI / 2 : -Math.PI / 2);
+                
+                const subBranch = new Branch(
+                    `sub-branch-${i}-${j}`,
+                    primaryBranch.startX + Math.cos(primaryBranch.angle) * (primaryBranch.maxLength * subT),
+                    primaryBranch.startY + Math.sin(primaryBranch.angle) * (primaryBranch.maxLength * subT),
+                    subAngle,
+                    subLength,
+                    j,
+                    2, // Level 2
+                    primaryBranch
+                );
+                
+                primaryBranch.children.push(subBranch);
+                this.bazookaBranches.push(subBranch);
+            }
+            
+            this.bazookaBranches.push(primaryBranch);
+        }
     }
     
     calculateLaserEndpoint(startX, startY, dirX, dirY, game) {
@@ -399,6 +477,16 @@ export class Weapon {
             );
         }
         
+        // Update branch positions to match current laser direction
+        if (player && player.weaponMode === 'BAZOOKA' && this.laserEndpoint) {
+            this.updateBranchPositions(
+                player.position.x,
+                player.position.y,
+                this.laserEndpoint,
+                Math.atan2(this.laserEndpoint.y - player.position.y, this.laserEndpoint.x - player.position.x)
+            );
+        }
+        
         // Check if laser duration has expired
         if (elapsed >= this.laserDuration) {
             // Apply recoil after laser duration
@@ -416,12 +504,22 @@ export class Weapon {
                 this.laserDeactivated = true;
                 this.laserActive = false;
                 this.lastFireTime = now;
+                
+                // Clear bazooka branches when laser is deactivated
+                const isBazookaMode = player && player.weaponMode === 'BAZOOKA';
+                if (isBazookaMode) {
+                    this.bazookaBranches = [];
+                    this.initialLaserEndpoint = null;
+                    this.initialLaserDirection = null;
+                }
+                
                 return false;
             }
         }
         
         // Laser is active, deal damage to enemies
         if (this.laserEndpoint && player.game) {
+            // Check damage for main laser beam
             for (const enemy of enemies) {
                 if (this.isPointOnLineSegment(
                     player.position.x, player.position.y,
@@ -491,9 +589,81 @@ export class Weapon {
                     }
                 }
             }
+            
+            // Check damage for branches if BAZOOKA mode is active
+            if (player && player.weaponMode === 'BAZOOKA') {
+                this.checkBranchCollisions(enemies);
+            }
         }
         
         return true;
+    }
+    
+    // Update branch positions to maintain relative positions during movement
+    updateBranchPositions(playerX, playerY, newEndpoint, newDirection) {
+        // Update each branch position relative to the main laser
+        for (const branch of this.bazookaBranches) {
+            if (branch.parent) {
+                // For sub-branches, update based on parent position
+                branch.updatePosition(branch.parent.startPoint, branch.parent.angle);
+            } else {
+                // For primary branches, update based on main laser
+                // Calculate position along the main laser beam
+                const t = 0.2 + (branch.index * 0.15);
+                const newStartX = playerX + (newEndpoint.x - playerX) * t;
+                const newStartY = playerY + (newEndpoint.y - playerY) * t;
+                
+                // Update branch angle relative to main laser
+                const newAngle = newDirection + branch.relativeAngle;
+                
+                branch.startPoint = { x: newStartX, y: newStartY };
+                branch.angle = newAngle;
+            }
+            
+            // Update children positions
+            for (const child of branch.children) {
+                child.updatePosition(branch.startPoint, branch.angle);
+            }
+        }
+    }
+    
+    // Check collisions for all branches and apply damage
+    checkBranchCollisions(enemies) {
+        const hitEnemies = new Set();
+        const now = Date.now();
+        const elapsed = now - this.laserStartTime;
+        const progress = Math.min(1, elapsed / (this.laserDuration * 0.5)); // Branches grow faster than main laser
+        
+        // Check collisions for each branch
+        for (const branch of this.bazookaBranches) {
+            // Calculate current length based on progress
+            const currentLength = branch.maxLength * progress;
+            
+            // Check collision with enemies
+            const enemiesHit = branch.checkCollision(enemies, currentLength);
+            for (const enemy of enemiesHit) {
+                hitEnemies.add(enemy);
+            }
+        }
+        
+        // Apply damage to all hit enemies
+        for (const enemy of hitEnemies) {
+            // Branches deal 30% of main laser damage
+            const branchDamage = this.states.LASER.damage * 0.3;
+            enemy.takeDamage(branchDamage);
+            
+            // Add visual effects for branch hits
+            if (this.player && this.player.game && this.player.game.particleSystem) {
+                this.player.game.particleSystem.addImpactSparks(
+                    enemy.position.x,
+                    enemy.position.y,
+                    '#00ff00', // Green color for branch hits
+                    5
+                );
+            }
+        }
+        
+        return hitEnemies.size > 0;
     }
     
     isPointOnLineSegment(x1, y1, x2, y2, px, py, radius) {
@@ -527,8 +697,11 @@ export class Weapon {
         return Math.sqrt(dx * dx + dy * dy) <= radius;
     }
     
-    renderLaser(ctx, playerX, playerY) {
+    renderLaser(ctx, playerX, playerY, player) {
         if (!this.laserActive || !this.laserEndpoint) return;
+        
+        // Store reference to player for use in other methods
+        this.player = player;
         
         const now = Date.now();
         const elapsed = now - this.laserStartTime;
@@ -538,19 +711,43 @@ export class Weapon {
         const pulse = Math.sin(now * 0.01) * 0.3 + 0.7;
         const energyPulse = Math.sin(now * 0.02) * 0.4 + 0.6;
         
+        // Check if player has BAZOOKA weapon mode active
+        const isBazookaMode = player && player.weaponMode === 'BAZOOKA';
+        
+        // Draw main laser beam
+        this.drawLaserBeam(ctx, playerX, playerY, this.laserEndpoint.x, this.laserEndpoint.y, pulse, energyPulse, isBazookaMode);
+        
+        // If BAZOOKA mode is active, draw branching lasers
+        if (isBazookaMode && this.initialLaserEndpoint) {
+            this.drawBazookaBranches(ctx, playerX, playerY, this.initialLaserEndpoint.x, this.initialLaserEndpoint.y, pulse, energyPulse);
+        }
+        
+        // Draw particle sparks along the main beam
+        this.drawLaserSparks(ctx, playerX, playerY, this.laserEndpoint.x, this.laserEndpoint.y, pulse);
+    }
+    
+    drawLaserBeam(ctx, startX, startY, endX, endY, pulse, energyPulse, isBazookaMode) {
         // Draw pulsing energy field around the beam
         ctx.beginPath();
-        ctx.moveTo(playerX, playerY);
-        ctx.lineTo(this.laserEndpoint.x, this.laserEndpoint.y);
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
         
         // Create energy field gradient
         const energyGradient = ctx.createLinearGradient(
-            playerX, playerY,
-            this.laserEndpoint.x, this.laserEndpoint.y
+            startX, startY,
+            endX, endY
         );
-        energyGradient.addColorStop(0, 'rgba(255, 100, 100, 0.3)');
-        energyGradient.addColorStop(0.5, 'rgba(255, 50, 50, 0.5)');
-        energyGradient.addColorStop(1, 'rgba(255, 0, 0, 0.1)');
+        
+        // Different colors for BAZOOKA mode
+        if (isBazookaMode) {
+            energyGradient.addColorStop(0, 'rgba(159, 33, 170, 0.4)');  // Green for BAZOOKA
+            energyGradient.addColorStop(0.5, 'rgba(156, 3, 144, 0.6)');
+            energyGradient.addColorStop(1, 'rgba(175, 16, 56, 0.2)');
+        } else {
+            energyGradient.addColorStop(0, 'rgba(255, 100, 100, 0.3)');
+            energyGradient.addColorStop(0.5, 'rgba(255, 50, 50, 0.5)');
+            energyGradient.addColorStop(1, 'rgba(255, 0, 0, 0.1)');
+        }
         
         ctx.strokeStyle = energyGradient;
         ctx.lineWidth = 15 * energyPulse;
@@ -558,80 +755,211 @@ export class Weapon {
         ctx.stroke();
         
         // Draw outer glow for energy field
-        ctx.shadowColor = '#ff0000';
+        ctx.shadowColor = isBazookaMode ? '#00ff00' : '#ff0000';
         ctx.shadowBlur = 25 * energyPulse;
         ctx.stroke();
         ctx.shadowBlur = 0;
         
         // Draw main laser beam with enhanced glow
         ctx.beginPath();
-        ctx.moveTo(playerX, playerY);
-        ctx.lineTo(this.laserEndpoint.x, this.laserEndpoint.y);
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
         
         // Create gradient for main laser effect
         const gradient = ctx.createLinearGradient(
-            playerX, playerY,
-            this.laserEndpoint.x, this.laserEndpoint.y
+            startX, startY,
+            endX, endY
         );
-        gradient.addColorStop(0, 'rgba(255, 50, 50, 0.9)');
-        gradient.addColorStop(0.3, 'rgba(255, 0, 0, 1)');
-        gradient.addColorStop(0.7, 'rgba(255, 100, 100, 0.9)');
-        gradient.addColorStop(1, 'rgba(255, 200, 200, 0.3)');
+        
+        // Different colors for BAZOOKA mode
+        if (isBazookaMode) {
+            gradient.addColorStop(0, 'rgba(100, 255, 100, 0.9)');  // Green for BAZOOKA
+            gradient.addColorStop(0.3, 'rgba(0, 255, 0, 1)');
+            gradient.addColorStop(0.7, 'rgba(100, 255, 100, 0.9)');
+            gradient.addColorStop(1, 'rgba(200, 255, 200, 0.3)');
+        } else {
+            gradient.addColorStop(0, 'rgba(255, 50, 50, 0.9)');
+            gradient.addColorStop(0.3, 'rgba(255, 0, 0, 1)');
+            gradient.addColorStop(0.7, 'rgba(255, 100, 100, 0.9)');
+            gradient.addColorStop(1, 'rgba(255, 200, 200, 0.3)');
+        }
         
         ctx.strokeStyle = gradient;
         ctx.lineWidth = 5 * pulse;
         ctx.stroke();
         
         // Add intense glow effect
-        ctx.shadowColor = '#ff0000';
+        ctx.shadowColor = isBazookaMode ? '#00ff00' : '#ff0000';
         ctx.shadowBlur = 30 * pulse;
         ctx.stroke();
         ctx.shadowBlur = 0;
         
         // Draw core beam with bright white center
         ctx.beginPath();
-        ctx.moveTo(playerX, playerY);
-        ctx.lineTo(this.laserEndpoint.x, this.laserEndpoint.y);
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2 * pulse;
         ctx.stroke();
         
         // Draw endpoint explosion effect
         ctx.beginPath();
-        ctx.arc(this.laserEndpoint.x, this.laserEndpoint.y, 10 * pulse, 0, Math.PI * 2);
+        ctx.arc(endX, endY, 10 * pulse, 0, Math.PI * 2);
         const endpointGradient = ctx.createRadialGradient(
-            this.laserEndpoint.x, this.laserEndpoint.y, 0,
-            this.laserEndpoint.x, this.laserEndpoint.y, 10 * pulse
+            endX, endY, 0,
+            endX, endY, 10 * pulse
         );
-        endpointGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-        endpointGradient.addColorStop(0.5, 'rgba(255, 100, 100, 0.8)');
-        endpointGradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+        
+        // Different colors for BAZOOKA mode
+        if (isBazookaMode) {
+            endpointGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            endpointGradient.addColorStop(0.5, 'rgba(100, 255, 100, 0.8)');
+            endpointGradient.addColorStop(1, 'rgba(0, 255, 0, 0)');
+        } else {
+            endpointGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            endpointGradient.addColorStop(0.5, 'rgba(255, 100, 100, 0.8)');
+            endpointGradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+        }
+        
         ctx.fillStyle = endpointGradient;
         ctx.fill();
         
         // Add glow to endpoint
-        ctx.shadowColor = '#ff0000';
+        ctx.shadowColor = isBazookaMode ? '#00ff00' : '#ff0000';
         ctx.shadowBlur = 20 * pulse;
         ctx.fill();
         ctx.shadowBlur = 0;
+    }
+    
+    drawBazookaBranches(ctx, playerX, playerY, endX, endY, pulse, energyPulse) {
+        // Draw all branches using the enhanced branching system
+        for (const branch of this.bazookaBranches) {
+            // Draw the branch with a "printed circuit" pattern
+            this.drawCircuitBranch(ctx, branch, pulse, energyPulse);
+        }
+    }
+    
+    drawCircuitBranch(ctx, branch, pulse, energyPulse) {
+        // Draw a branch with a "printed circuit" pattern that grows outward
+        // Calculate how much of the branch should be visible based on time
+        const now = Date.now();
+        const elapsed = now - this.laserStartTime;
+        const progress = Math.min(1, elapsed / (this.laserDuration * 0.5)); // Branches grow faster than main laser
         
+        // Calculate current length based on progress
+        const currentLength = branch.maxLength * progress;
+        
+        // Calculate endpoint based on angle and current length
+        const endX = branch.startPoint.x + Math.cos(branch.angle) * currentLength;
+        const endY = branch.startPoint.y + Math.sin(branch.angle) * currentLength;
+        
+        // Update branch end point
+        branch.endPoint = { x: endX, y: endY };
+        
+        // Draw main branch line
+        ctx.beginPath();
+        ctx.moveTo(branch.startPoint.x, branch.startPoint.y);
+        ctx.lineTo(endX, endY);
+        
+        // Validate coordinates before creating gradient
+        if (!isFinite(branch.startPoint.x) || !isFinite(branch.startPoint.y) ||
+            !isFinite(endX) || !isFinite(endY)) {
+            return; // Skip drawing if coordinates are not finite
+        }
+        
+        // Create gradient for branch
+        const gradient = ctx.createLinearGradient(branch.startPoint.x, branch.startPoint.y, endX, endY);
+        gradient.addColorStop(0, 'rgba(100, 255, 100, 0.8)');  // Bright green start
+        gradient.addColorStop(0.5, 'rgba(0, 255, 0, 1)');     // Pure green middle
+        gradient.addColorStop(1, 'rgba(0, 150, 0, 0.6)');     // Darker green end
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 3 * pulse;
+        ctx.stroke();
+        
+        // Add glow effect
+        ctx.shadowColor = '#00ff00';
+        ctx.shadowBlur = 15 * pulse;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        // Draw "printed circuit" elements along the branch
+        const segmentLength = 30;
+        const segments = Math.floor(currentLength / segmentLength);
+        
+        for (let i = 1; i < segments; i++) {
+            // Position along the branch
+            const segmentX = branch.startPoint.x + Math.cos(branch.angle) * (i * segmentLength);
+            const segmentY = branch.startPoint.y + Math.sin(branch.angle) * (i * segmentLength);
+            
+            // Every few segments, draw a circuit element
+            if (i % 3 === 0) {
+                // Draw a small perpendicular line (like a circuit trace)
+                const perpAngle = branch.angle + Math.PI / 2; // 90 degrees perpendicular
+                const perpLength = 10 + (branch.index * 2); // Vary length by branch
+                
+                ctx.beginPath();
+                ctx.moveTo(segmentX, segmentY);
+                ctx.lineTo(
+                    segmentX + Math.cos(perpAngle) * perpLength,
+                    segmentY + Math.sin(perpAngle) * perpLength
+                );
+                
+                ctx.strokeStyle = '#00ff88';
+                ctx.lineWidth = 1.5 * pulse;
+                ctx.stroke();
+                
+                // Add a small circle at the end (like a component)
+                ctx.beginPath();
+                ctx.arc(
+                    segmentX + Math.cos(perpAngle) * perpLength,
+                    segmentY + Math.sin(perpAngle) * perpLength,
+                    3 * pulse,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fillStyle = '#00ffcc';
+                ctx.fill();
+            }
+            
+            // Draw small dots along the branch (like circuit nodes)
+            if (i % 2 === 0) {
+                ctx.beginPath();
+                ctx.arc(segmentX, segmentY, 2 * pulse, 0, Math.PI * 2);
+                ctx.fillStyle = '#00ffaa';
+                ctx.fill();
+            }
+        }
+        
+        // Draw endpoint effect
+        ctx.beginPath();
+        ctx.arc(endX, endY, 5 * pulse, 0, Math.PI * 2);
+        const endpointGradient = ctx.createRadialGradient(
+            endX, endY, 0,
+            endX, endY, 5 * pulse
+        );
+        endpointGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        endpointGradient.addColorStop(0.5, 'rgba(100, 255, 100, 0.8)');
+        endpointGradient.addColorStop(1, 'rgba(0, 255, 0, 0)');
+        ctx.fillStyle = endpointGradient;
+        ctx.fill();
+    }
+    
+    drawLaserSparks(ctx, startX, startY, endX, endY, pulse) {
         // Draw particle sparks along the beam
         const beamLength = Math.sqrt(
-            Math.pow(this.laserEndpoint.x - playerX, 2) +
-            Math.pow(this.laserEndpoint.y - playerY, 2)
+            Math.pow(endX - startX, 2) +
+            Math.pow(endY - startY, 2)
         );
-        const beamAngle = Math.atan2(
-            this.laserEndpoint.y - playerY,
-            this.laserEndpoint.x - playerX
-        );
+        const beamAngle = Math.atan2(endY - startY, endX - startX);
         
         // Add sparks at regular intervals along the beam
         for (let i = 0; i < beamLength; i += 30) {
             // Only show some sparks for performance
             if (Math.random() > 0.3) continue;
             
-            const sparkX = playerX + Math.cos(beamAngle) * i;
-            const sparkY = playerY + Math.sin(beamAngle) * i;
+            const sparkX = startX + Math.cos(beamAngle) * i;
+            const sparkY = startY + Math.sin(beamAngle) * i;
             
             // Add small random offset for spark effect
             const offsetX = (Math.random() - 0.5) * 10;

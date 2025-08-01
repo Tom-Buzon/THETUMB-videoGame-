@@ -8,6 +8,7 @@ export class BlackHoleItem {
         this.y = y;
         this.radius = ITEM_CONFIG.BASE.RADIUS;
         this.color = ITEM_CONFIG.BLACK_HOLE.COLOR;
+        this.pulseTime = 0; // For aura pulsing effect
         this.active = false;
         this.startTime = 0;
         this.duration = ITEM_CONFIG.BLACK_HOLE.DURATION; // 3 seconds
@@ -29,6 +30,8 @@ export class BlackHoleItem {
     }
 
     update() {
+        this.pulseTime += 0.1; // Increment pulse time for animation
+        
         if (this.isActivating) {
             const now = Date.now();
             const elapsed = now - this.activationTime;
@@ -176,6 +179,15 @@ export class BlackHoleItem {
             }
         } else {
             // Draw simplified black hole when not active
+            // Calculate pulsing effect for aura
+            const pulse = Math.sin(this.pulseTime) * 0.5 + 0.5; // Value between 0 and 1
+            const auraIntensity = 10 + pulse * 10; // Pulsing blur between 10 and 20
+            
+            // Draw aura effect
+            ctx.save();
+            ctx.shadowColor = this.color;
+            ctx.shadowBlur = auraIntensity;
+            
             // Draw outer ring (accretion disk)
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
@@ -187,6 +199,8 @@ export class BlackHoleItem {
             ctx.arc(this.x, this.y, this.radius * 0.6, 0, Math.PI * 2);
             ctx.fillStyle = this.color; // Dark blue center
             ctx.fill();
+            
+            ctx.restore(); // Restore context to remove shadow effects
         }
     }
 

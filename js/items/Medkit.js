@@ -7,15 +7,32 @@ export class MedkitItem {
         this.y = y;
         this.radius = ITEM_CONFIG.BASE.RADIUS;
         this.color = ITEM_CONFIG.MEDKIT.COLOR;
+        this.pulseTime = 0; // For aura pulsing effect
+        this.pulseTime = 0; // For aura pulsing effect
     }
 
-    update() {}
+    update() {
+        this.pulseTime += 0.1; // Increment pulse time for animation
+    }
     draw(ctx) {
-        // Draw green background circle
+        // Calculate pulsing effect for aura
+        const pulse = Math.sin(this.pulseTime) * 0.5 + 0.5; // Value between 0 and 1
+        const auraIntensity = 10 + pulse * 10; // Pulsing blur between 10 and 20
+        
+        // Draw aura effect
+        ctx.save();
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = auraIntensity;
+        
+        // Draw green background circle with aura
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
         ctx.fillStyle = this.color; // Green background
         ctx.fill();
+        
+        // Reset shadow for inner elements
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
         
         // Draw white cross
         ctx.fillStyle = 'white';
@@ -40,6 +57,8 @@ export class MedkitItem {
             crossWidth,
             crossThickness
         );
+        
+        ctx.restore(); // Restore context to remove shadow effects
     }
 
     activate() {
