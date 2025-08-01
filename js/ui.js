@@ -239,14 +239,14 @@ export class DoomUI {
         const ctx = this.ctx;
         
         // Red overlay
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        ctx.fillStyle = '#ff0000ff';
         ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         // Game Over text
         ctx.save();
-        ctx.shadowColor = this.colors.red;
+        ctx.shadowColor = '#ff0000ff';
         ctx.shadowBlur = 30;
-        ctx.fillStyle = this.colors.red;
+        ctx.fillStyle = '#ffaa00';
         ctx.font = 'bold 72px Courier New';
         ctx.textAlign = 'center';
         ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2 - 150);
@@ -254,15 +254,17 @@ export class DoomUI {
         // Stats
         ctx.shadowBlur = 15;
         ctx.font = 'bold 36px Courier New';
-        ctx.fillStyle = this.colors.white;
+        ctx.fillStyle = '#ffaa00';
         ctx.fillText(`FINAL SCORE: ${Math.floor(this.score)}`, this.canvas.width / 2, this.canvas.height / 2 - 80);
         
         // Format time as MM:SS
         const minutes = Math.floor(this.timer / 60000);
         const seconds = Math.floor((this.timer % 60000) / 1000);
+        ctx.fillStyle = '#ffaa00';
         ctx.fillText(`PLAY TIME: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`, this.canvas.width / 2, this.canvas.height / 2 - 30);
         
         if (this.game) {
+            ctx.fillStyle = '#ffaa00';
             ctx.fillText(`DUNGEON: ${this.game.currentDungeon}`, this.canvas.width / 2, this.canvas.height / 2 + 20);
             ctx.fillText(`ROOM: ${this.game.currentRoom}`, this.canvas.width / 2, this.canvas.height / 2 + 70);
         }
@@ -281,7 +283,7 @@ export class DoomUI {
         ctx.lineWidth = 3;
         ctx.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
         
-        ctx.fillStyle = this.colors.white;
+        ctx.fillStyle = '#ff0000ff';
         ctx.font = 'bold 24px Courier New';
         ctx.fillText('RESTART', this.canvas.width / 2, this.canvas.height / 2 + 150);
         
