@@ -59,7 +59,7 @@ export class Game {
             // ItemManager created
             
             // Progressive dungeon system
-            this.currentDungeon = 4;
+            this.currentDungeon = 1;
             this.currentRoom = 1;
             this.maxDungeons = ROOM_CONFIG.MAX_DUNGEONS;
             this.maxRooms = ROOM_CONFIG.MAX_ROOMS;
