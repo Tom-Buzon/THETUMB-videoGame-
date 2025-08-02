@@ -40,7 +40,8 @@ export class Player {
             timeBubble: { active: false, duration: 0, maxDuration: ITEM_CONFIG.TIME_BUBBLE.DURATION }, // 5 seconds
             blackHole: { active: false, duration: 0, maxDuration: ITEM_CONFIG.BLACK_HOLE.DURATION }, // 10 seconds
             companion: { active: false, duration: 0, maxDuration: ITEM_CONFIG.COMPANION.COOLDOWN || 30000 }, // 30 seconds
-            godPlan: { active: false, duration: 0, maxDuration: ITEM_CONFIG.GOD_PLAN.DURATION } // 20 seconds
+            godPlan: { active: false, duration: 0, maxDuration: ITEM_CONFIG.GOD_PLAN.DURATION }, // 20 seconds
+            fireball: { active: false, duration: 0, maxDuration: ITEM_CONFIG.FIREBALL.DURATION } // 2 seconds
         };
         
         // Item cooldowns (in milliseconds)
@@ -55,7 +56,8 @@ export class Player {
             blackHole: 0,
             companion: 0,
             godPlan: 0,
-            randomBox: 0
+            randomBox: 0,
+            fireball: 0
         };
         
         // Current active effects for display
@@ -155,6 +157,11 @@ export class Player {
             this.recoilForce.x,
             this.recoilForce.y
         );
+        
+        // Deal contact damage if fireball effect is active
+        if (this.itemEffects.fireball.active) {
+            this.dealContactDamage();
+        }
     }
 
     handleMovement(keys) {
@@ -518,6 +525,22 @@ export class Player {
     }
 
     
+    dealContactDamage() {
+        // Deal contact damage to enemies when fireball effect is active
+        if (this.game && this.game.enemies) {
+            for (const enemy of this.game.enemies) {
+                // Calculate distance between player and enemy
+                const dx = this.position.x - enemy.position.x;
+                const dy = this.position.y - enemy.position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // If enemy is within player's radius, deal damage
+                if (distance < this.size + enemy.size) {
+                    enemy.takeDamage(ITEM_CONFIG.FIREBALL.DAMAGE); // 30 damage per frame
+                }
+            }
+        }
+    }
 
         // **RENDER TRAIL**
     render(ctx) {
@@ -546,6 +569,13 @@ export class Player {
             // Add glow effect
             ctx.shadowColor = '#ffff00'; // Yellow glow for room entry invulnerability
             ctx.shadowBlur = 20;
+        }
+        
+        // Apply fireball effect glow if active
+        if (this.itemEffects.fireball.active) {
+            // Add fireball glow effect
+            ctx.shadowColor = '#ff6600'; // Orange glow for fireball
+            ctx.shadowBlur = 30;
         }
         
         ctx.fillStyle = this.color;
@@ -698,6 +728,10 @@ export class Player {
                     this.game.ui.showWeaponChangeMessage('NORMAL WEAPON');
                 }
                 this.weaponMode = 'NORMAL';
+                break;
+            case 'fireball':
+                // Reset player invulnerability when fireball effect ends
+                this.invincible = false;
                 break;
             // Add other effect cleanups as needed
         }

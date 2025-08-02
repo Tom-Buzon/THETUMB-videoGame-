@@ -10,6 +10,7 @@ import { TimeBubbleItem } from './TimeBubble.js';
 import { GodPlanItem } from './GodPlan.js';
 import { RandomBoxItem } from './RandomBox.js';
 import { RicochetItem } from './Ricochet.js';
+import { FireBallItem } from './FireBall.js';
 
 export class ItemManager {
     constructor(game) {
@@ -40,6 +41,9 @@ export class ItemManager {
                 break;
             case 'Ghost':
                 item = new GhostItem(this.game, x, y);
+                break;
+            case 'FireBall':
+                item = new FireBallItem(this.game, x, y);
                 break;
             case 'TimeBubble':
                 item = new TimeBubbleItem(this.game, x, y);

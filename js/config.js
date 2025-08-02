@@ -13,7 +13,7 @@ const PLAYER_CONFIG = {
 
   // Room Entry Invulnerability
   ROOM_ENTRY_INVULNERABILITY: {
-    DURATION: 1000 // 2 seconds
+    DURATION: 1000 // 1 seconds
   },
   
   // Companion Configuration
@@ -35,7 +35,7 @@ const PLAYER_CONFIG = {
   },
   
  
-  
+   
 };
 
 // Weapon Configuration
@@ -286,6 +286,12 @@ const ITEM_CONFIG = {
     COLOR: "#ffffff",
     DURATION: 20000, // 20 seconds
     COOLDOWN: 60000 // 60 seconds
+  },
+  FIREBALL: {
+    COLOR: "#ff6600",
+    DURATION: 2000, // 2 seconds
+    COOLDOWN: 30000, // 30 seconds
+    DAMAGE: 30 // Damage per frame
   }
 };
 
@@ -324,7 +330,7 @@ const ROOM_CONFIG = {
     //classement réel d'items
     COMMON: ['Medkit', 'Ricochet','Bazooka','Ghost'],
     UNCOMMON: ['Shield', 'BlackHole', 'Companion'],
-    RARE: [, 'Valkyrie', 'TimeBubble'],
+    RARE: ['FireBall', 'Valkyrie', 'TimeBubble'],
     EPIC: ['GodPlan', 'RandomBox']
   }
 };
