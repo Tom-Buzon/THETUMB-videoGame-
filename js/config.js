@@ -221,6 +221,34 @@ const ENEMY_CONFIG = {
   }
 };
 
+// Snake Boss Configuration
+const SNAKE_BOSS = {
+  SIZE: 30,
+  SEGMENT_SIZE: 15,
+  SEGMENT_COUNT: 15,
+  HEALTH: 900,
+  MAX_HEALTH: 900,
+  SPEED: 2,
+  PHASE_THRESHOLDS: [700, 450, 225],
+  ATTACK_COOLDOWNS: {
+    PHASE_1: { basicProjectile: 50, sweep: 75 },
+    PHASE_2: { basicProjectile: 50, sweep: 75, homingMissile: 120 },
+    PHASE_3: { basicProjectile: 30, sweep: 50, homingMissile: 90, poisonCloud: 60 },
+    PHASE_4: { basicProjectile: 20, sweep: 50, homingMissile: 45, poisonCloud: 60, ultimate: 100 }
+  },
+  COLORS: {
+    PHASE_1: '#00ff00',
+    PHASE_2: '#ffff00',
+    PHASE_3: '#ff9900',
+    PHASE_4: '#ff0000'
+  },
+  VITAL_POINT_COLOR: '#ffffff',
+  TRAIL_PARTICLES: 20,
+  AURA_RADIUS: 60,
+  AURA_COLOR: '#00ff00',
+  AURA_INTENSITY: 0.6
+};
+
 // Item Configuration
 const ITEM_CONFIG = {
   BASE: {
@@ -430,8 +458,9 @@ export {
   ENEMY_CONFIG, 
   ITEM_CONFIG, 
   ROOM_CONFIG, 
-  PARTICLE_CONFIG, 
-  UI_CONFIG, 
-  AUDIO_CONFIG, 
-  PROGRESSION_CONFIG 
+  PARTICLE_CONFIG,
+  UI_CONFIG,
+  AUDIO_CONFIG,
+  PROGRESSION_CONFIG,
+  SNAKE_BOSS
 };

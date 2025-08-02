@@ -63,7 +63,7 @@ export class Game {
             this.currentRoom = 1;
             this.maxDungeons = ROOM_CONFIG.MAX_DUNGEONS;
             this.maxRooms = ROOM_CONFIG.MAX_ROOMS;
-            this.roomGenerator = new RoomGenerator(this.canvas.width, this.canvas.height);
+            this.roomGenerator = new RoomGenerator(this.canvas.width, this.canvas.height, this);
             
             this.enemies = [];
             this.bullets = [];
@@ -80,6 +80,9 @@ export class Game {
             this.glitchEffect = 0;
             
             // Game properties initialized
+            
+            // Random boss selection for room 3
+            this.bossType = Math.random() < 0.5 ? 'current' : 'snake';
             
             // Initialize timeouts set for tracking
             this.timeouts = new Set();

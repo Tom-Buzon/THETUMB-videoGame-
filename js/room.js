@@ -6,11 +6,13 @@ import { Swarmer } from './enemies/swarmer.js';
 import { Protector } from './enemies/protector.js';
 import { Sniper } from './enemies/sniper.js';
 import { Boss } from './enemies/boss.js';
+import { SnakeBoss } from './enemies/snakeBoss.js';
 
 export class RoomGenerator {
-    constructor(width, height) {
+    constructor(width, height, game) {
         this.width = width || ROOM_CONFIG.CANVAS_WIDTH;
         this.height = height || ROOM_CONFIG.CANVAS_HEIGHT;
+        this.game = game;
     }
 
     generateEnemies(dungeon, room) {
@@ -18,7 +20,13 @@ export class RoomGenerator {
         
         // Boss room (room 3)
         if (room === 3) {
-            const boss = new Boss(this.width/2, this.height/2, dungeon);
+            let boss;
+            // Check if we're in a game context and if snake boss should be spawned
+            if (this.game && this.game.bossType === 'snake') {
+                boss = new SnakeBoss(this.width/2, this.height/2);
+            } else {
+                boss = new Boss(this.width/2, this.height/2);
+            }
             enemies.push(boss);
             return enemies;
         }

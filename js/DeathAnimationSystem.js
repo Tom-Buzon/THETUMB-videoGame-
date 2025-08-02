@@ -92,6 +92,63 @@ export class DeathAnimationSystem {
                     );
                     break;
                     
+                case 'SnakeBoss':
+                    // Create sequential explosions along the snake body
+                    if (enemy.segments) {
+                        for (let i = 0; i < enemy.segments.length; i++) {
+                            setTimeout(() => {
+                                const segment = enemy.segments[i];
+                                particleSystem.addExplosion(
+                                    segment.position.x,
+                                    segment.position.y,
+                                    enemy.color,
+                                    15,
+                                    1.2
+                                );
+                                
+                                // Add dissolve effect for segment
+                                particleSystem.addDissolveEffect(
+                                    segment.position.x,
+                                    segment.position.y,
+                                    enemy.color,
+                                    segment.size
+                                );
+                            }, i * 100); // Stagger explosions
+                        }
+                    }
+                    
+                    // Massive particle shower
+                    for (let i = 0; i < 100; i++) {
+                        const segment = enemy.segments ? enemy.segments[Math.floor(Math.random() * enemy.segments.length)] : enemy.position;
+                        const posX = enemy.segments ? segment.position.x : enemy.position.x;
+                        const posY = enemy.segments ? segment.position.y : enemy.position.y;
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = 1 + Math.random() * 4;
+                        
+                        particleSystem.addParticle({
+                            x: posX,
+                            y: posY,
+                            vx: Math.cos(angle) * speed,
+                            vy: Math.sin(angle) * speed,
+                            life: 60,
+                            decay: 0.97,
+                            color: enemy.color,
+                            size: 1 + Math.random() * 3
+                        });
+                    }
+                    
+                    // Final screen flash
+                    particleSystem.addFlash(
+                        enemy.position.x,
+                        enemy.position.y,
+                        400,
+                        '#ffffff'
+                    );
+                    
+                    // Strong screen shake
+                    particleSystem.addScreenShake(20);
+                    break;
+                    
                 case 'Protector':
                     // Create death explosion
                     particleSystem.addExplosion(
@@ -346,6 +403,9 @@ export class DeathAnimationSystem {
             case 'Boss':
                 this.renderBossDeathAnimation(enemy, ctx, progress);
                 break;
+            case 'SnakeBoss':
+                this.renderSnakeBossDeathAnimation(enemy, ctx, progress);
+                break;
             case 'Protector':
                 this.renderProtectorDeathAnimation(enemy, ctx, progress);
                 break;
@@ -370,6 +430,29 @@ export class DeathAnimationSystem {
         }
         
         ctx.globalAlpha = 1;
+    }
+    
+    // Snake Boss death animation
+    renderSnakeBossDeathAnimation(snakeBoss, ctx, progress) {
+        const alpha = 1 - progress;
+        if (alpha <= 0) return;
+        
+        ctx.globalAlpha = alpha;
+        
+        // Render segments with glitch effect
+        if (snakeBoss.segments) {
+            for (let i = 0; i < snakeBoss.segments.length; i++) {
+                const segment = snakeBoss.segments[i];
+                const glitchX = segment.position.x + (Math.random() - 0.5) * 20 * progress;
+                const glitchY = segment.position.y + (Math.random() - 0.5) * 20 * progress;
+                const size = segment.size * (1 - progress * 0.5);
+                
+                ctx.fillStyle = segment.color;
+                ctx.beginPath();
+                ctx.arc(glitchX, glitchY, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
     }
     
     // Boss death animation
