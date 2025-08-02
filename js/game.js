@@ -422,6 +422,17 @@ export class Game {
             return true;
         });
         
+        // Handle boss-specific minion spawning outside of the filtering loop
+        const allMinions = [];
+        this.enemies.forEach(enemy => {
+            if (enemy.constructor.name === 'Boss') {
+                const newMinions = enemy.spawnMinions();
+                allMinions.push(...newMinions);
+            }
+        });
+        // Add newly spawned minions to the main enemies array
+        this.enemies.push(...allMinions);
+        
         // Clear and repopulate spatial grid
         this.spatialGrid.clear();
         
@@ -457,7 +468,7 @@ export class Game {
                 for (let i = nearbyEntities.length - 1; i >= 0; i--) {
                     const entity = nearbyEntities[i];
                     // Check if entity is an enemy
-                    if (entity.constructor && entity.constructor.prototype instanceof Enemy) {
+                    if (entity instanceof Enemy) {
                         if (bullet.checkCollision(entity)) {
                             // Check if the entity is protected by a living protector
                             if (Protector && Protector.isProtected && Protector.isProtected(entity, this.enemies)) {

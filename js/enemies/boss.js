@@ -1,4 +1,4 @@
-import { ENEMY_CONFIG } from '../config.js';
+import { ENEMY_CONFIG, ROOM_CONFIG } from '../config.js';
 import { Vector2D } from '../vector2d.js';
 import { Bullet } from '../bullet.js';
 import { Swarmer } from './swarmer.js';
@@ -35,7 +35,7 @@ export class Boss extends Enemy {
         
         // **MINIONS**
         this.minionSpawnCooldown = 0;
-        this.minions = [];
+        
         
         // **TÉLÉPORTATION**
         this.teleportCooldown = 0;
@@ -61,8 +61,6 @@ export class Boss extends Enemy {
         // **AURA ET PARTICULES**
         this.updateAura();
         
-        // **MINIONS**
-        this.updateMinions(player);
         
         // **SHIELD**
         this.updateShield();
@@ -134,8 +132,8 @@ export class Boss extends Enemy {
         this.position = this.position.add(this.velocity);
 
         // **LIMITES**
-        this.position.x = Math.max(this.size, Math.min(800 - this.size, this.position.x));
-        this.position.y = Math.max(this.size, Math.min(600 - this.size, this.position.y));
+        this.position.x = Math.max(this.size, Math.min(ROOM_CONFIG.CANVAS_WIDTH - this.size, this.position.x));
+        this.position.y = Math.max(this.size, Math.min(ROOM_CONFIG.CANVAS_HEIGHT - this.size, this.position.y));
     }
 
     updateAttacks(player) {
@@ -283,7 +281,9 @@ export class Boss extends Enemy {
         });
     }
 
-    updateMinions(player) {
+    spawnMinions() {
+        const newMinions = [];
+        
         if (this.minionSpawnCooldown > 0) {
             this.minionSpawnCooldown--;
         }
@@ -305,19 +305,15 @@ export class Boss extends Enemy {
                 minion = types[Math.floor(Math.random() * types.length)];
             }
             
-            minion.activated = true;
+            // Set minion health to 50% and update maxHealth accordingly
             minion.health = Math.floor(minion.health * 0.5);
-            this.minions.push(minion);
+            minion.maxHealth = minion.health; // Update maxHealth to match the new health
+            // Immediately activate minions to ensure they behave correctly
+            minion.activated = true;
+            newMinions.push(minion);
         }
         
-        // **MISE À JOUR DES MINIONS**
-        this.minions = this.minions.filter(minion => {
-            if (minion.health <= 0) return false;
-            
-            // Les minions ne tirent pas, ils chargent
-            minion.update(player);
-            return true;
-        });
+        return newMinions;
     }
 
     updateShield() {
@@ -456,7 +452,5 @@ export class Boss extends Enemy {
         ctx.textAlign = 'center';
         ctx.fillText(`PHASE ${this.phase}`, this.position.x, this.position.y - this.size - 30);
         
-        // **RENDU DES MINIONS**
-        this.minions.forEach(minion => minion.render(ctx));
     }
 }
